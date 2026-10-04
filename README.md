@@ -52,6 +52,26 @@ flowchart LR
   <img src="docs/assets/figures/benchmark/speedup_min_time.png" width="48%" alt="FC speed-up, min-time">
 </p>
 
+## Conclusions
+
+**What the work shows**
+
+1. **A cold start is not viable for constrained missions.** The point-mass solver fails in 3 of 8 scenarios (those with no-fly zones or waypoints) when started from a straight-line guess.
+2. **The hierarchical warm start makes the solver robust.** The chain Hybrid A\* → inverse dynamics → UF → FC converged in all 8 scenarios, for both objectives. One scenario (waypoints only) was solved only with the full chain.
+3. **It also makes the 6-DoF stage faster.** Against seeding FC directly, it was faster in every scenario where both converged: 1.2× to 4.4× for the 6-DoF stage, with a mean saving of 8.7–11.9 s. The warm-start cost is small (about 40–220 ms for Hybrid A\* and 2–25 ms for inverse dynamics).
+4. **Both pipelines reach nearly the same optimum** (3.3–4.5 % trajectory deviation, end-mass differences ≤ 0.1 kg), so the speed-up does not come from a worse solution.
+5. **Smoothness regularisation makes controls flyable, at a price.** It suppresses control chatter in both models, but for the 6-DoF model it moves the optimum noticeably (SC-01 min-fuel: without regularisation the flight is 21 % longer and uses 14 % less energy), whereas the point-mass model changes by only a few percent.
+
+**What it does not show (yet)**
+
+- **Real-time target:** only the point-mass layer (0.5–3.0 s) meets the < 4 s goal; the 6-DoF stage takes 4.5–12.9 s even with a warm start.
+- For easy empty-airspace cases the warm start does not always save time on the point-mass stage; its value there is robustness, not speed.
+- Open-loop planning only, deterministic wind, one aircraft model, 8 scenarios with 2 repetitions on one machine, local optima only.
+
+**Next steps:** analytical Jacobians and a C++ core to bring the 6-DoF stage under 4 s, closed-loop MPC around the offline trajectory, stochastic wind with chance constraints.
+
+Details: [Conclusions](docs/15-conclusions.md) · [Benchmark](docs/14-results-warmstart.md).
+
 ## Documentation
 
 | Part | Pages |
@@ -82,4 +102,4 @@ The production solver is proprietary to **Singular Aircraft** and is **not** par
 ## Author & citation
 
 **Pablo Urioste Alarcón** — [LinkedIn](https://www.linkedin.com/in/pablo-urioste-alarcón-239804235) — supervised by Dr. Àlex Ferrer Ferré (CIMNE / UPC).
-Cite via [`CITATION.cff`](CITATION.cff). Documentation and figures: CC BY 4.0 ([LICENSE](LICENSE)); example code: MIT ([LICENSE-CODE](LICENSE-CODE)).
+Cite via [`CITATION.cff`](CITATION.cff). Documentation and figures: CC BY 4.0 ([LICENSE](LICENSE)); example code: MIT ([LICENSE-CODE](LICENSE-CODE)). Exclusions and trademarks: [NOTICE.md](NOTICE.md).
