@@ -1,0 +1,33 @@
+# LaTeX build artefacts
+*.aux
+*.log
+*.bbl
+*.bcf
+*.blg
+*.toc
+*.lof
+*.lot
+*.out
+*.fls
+*.fdb_latexmk
+*.run.xml
+*-SAVE-ERROR
+
+# Windows / OS
+*Zone.Identifier
+Thumbs.db
+.DS_Store
+desktop.ini
+
+# Python
+__pycache__/
+*.pyc
+.ipynb_checkpoints/
+.venv/
+
+# MkDocs
+site/
+
+# Never publish
+Extras/
+Hybrid_A-Star_*.pdf

@@ -1,0 +1,50 @@
+site_name: Optimal 3D Trajectory Planning for a Fixed-Wing UAV
+site_description: Minimum-time / minimum-fuel trajectory optimisation with a Hybrid A* warm start (BSc thesis, UPC – ESEIAAT)
+repo_url: https://github.com/pablourioste/uav-optimal-trajectory-planning
+
+theme:
+  name: material
+  features:
+    - navigation.sections
+    - navigation.footer
+    - content.code.copy
+
+markdown_extensions:
+  - admonition
+  - tables
+  - attr_list
+  - pymdownx.arithmatex:
+      generic: true
+  - pymdownx.superfences:
+      custom_fences:
+        - name: mermaid
+          class: mermaid
+          format: !!python/name:pymdownx.superfences.fence_code_format
+
+extra_javascript:
+  - https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js
+
+nav:
+  - Home: index.md
+  - Project:
+      - 1. Problem and requirements: 01-problem.md
+      - 2. State of the art: 02-state-of-the-art.md
+      - 3. Methodology: 03-methodology.md
+      - 4. Design decisions: 04-design-decisions.md
+  - Theory:
+      - 5. OCP and NLP: 05-ocp-theory.md
+      - 6. Point-mass dynamics (UF): 06-dynamics-uf.md
+      - 7. Rigid-body dynamics (FC): 07-dynamics-fc.md
+      - 8. Transcription: 08-transcription.md
+      - 9. Constraints: 09-constraints.md
+      - 10. Cost function: 10-cost-function.md
+      - 11. Warm start pipeline: 11-warm-start.md
+  - Results:
+      - 12. Validation: 12-results-validation.md
+      - 13. Regularisation: 13-results-penalties.md
+      - 14. Warm-start benchmark: 14-results-warmstart.md
+      - 15. Conclusions: 15-conclusions.md
+  - Appendix:
+      - Coordinate frames: appendix-frames.md
+      - Adjoint method: appendix-adjoint.md
+      - References: references.md
