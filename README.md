@@ -59,7 +59,7 @@ flowchart LR
 | Project | [Problem](docs/01-problem.md) · [State of the art](docs/02-state-of-the-art.md) · [Methodology](docs/03-methodology.md) · [Design decisions](docs/04-design-decisions.md) |
 | Theory | [OCP → NLP](docs/05-ocp-theory.md) · [UF dynamics](docs/06-dynamics-uf.md) · [FC dynamics](docs/07-dynamics-fc.md) · [Transcription](docs/08-transcription.md) · [Constraints](docs/09-constraints.md) · [Cost function](docs/10-cost-function.md) · [Warm start](docs/11-warm-start.md) |
 | Results | [Validation](docs/12-results-validation.md) · [Regularisation](docs/13-results-penalties.md) · [Warm-start benchmark](docs/14-results-warmstart.md) · [Conclusions](docs/15-conclusions.md) |
-| Appendix | [Coordinate frames](docs/appendix-frames.md) · [Adjoint method](docs/appendix-adjoint.md) · [References](docs/references.md) |
+| Appendix | [Coordinate frames](docs/appendix-frames.md) · [Adjoint method](docs/appendix-adjoint.md) · [Aircraft MSN012](docs/appendix-msn012.md) · [References](docs/references.md) |
 
 Browse locally with `pip install mkdocs-material && mkdocs serve`.
 
@@ -81,5 +81,5 @@ The production solver is proprietary to **Singular Aircraft** and is **not** par
 
 ## Author & citation
 
-**Pablo Urioste Alarcón** — supervised by Dr. Àlex Ferrer Ferré (CIMNE / UPC).
+**Pablo Urioste Alarcón** — [LinkedIn](https://www.linkedin.com/in/pablo-urioste-alarcón-239804235) — supervised by Dr. Àlex Ferrer Ferré (CIMNE / UPC).
 Cite via [`CITATION.cff`](CITATION.cff). Documentation and figures: CC BY 4.0 ([LICENSE](LICENSE)); example code: MIT ([LICENSE-CODE](LICENSE-CODE)).

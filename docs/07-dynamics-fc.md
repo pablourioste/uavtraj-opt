@@ -49,6 +49,6 @@ function f_FC(state, control, wind):
 | Output | Path + quasi-steady lift | Path + actuator commands |
 | Typical use | Fast planning, warm start | Fidelity, autopilot-ready output |
 
-The aerodynamic coefficients and mass data of the reference airframe are not reproduced here.
+The aerodynamic coefficients and mass data of the reference airframe are listed in the [MSN012 appendix](appendix-msn012.md).
 
 [← Previous](06-dynamics-uf.md) · [Next: Transcription →](08-transcription.md)

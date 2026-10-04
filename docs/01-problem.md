@@ -9,7 +9,7 @@ A flight plan for a small aircraft is usually a polyline of waypoints flown at c
 
 ## Reference platform
 
-**Flyox I** (Singular Aircraft): amphibious heavy UAV, MTOW 1,850 kg, payload 850 kg, range 1,200 km. The aircraft used in the validation is the reference airframe MSN012.
+**Flyox I** (Singular Aircraft): amphibious heavy UAV, MTOW 1,850 kg, payload 850 kg, range 1,200 km. The aircraft used in the validation is the reference airframe MSN012, a full-scale implementation of the platform; its data are in the [MSN012 appendix](appendix-msn012.md).
 
 ## Requirements (selected)
 

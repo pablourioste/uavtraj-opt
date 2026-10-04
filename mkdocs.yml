@@ -47,4 +47,5 @@ nav:
   - Appendix:
       - Coordinate frames: appendix-frames.md
       - Adjoint method: appendix-adjoint.md
+      - Aircraft MSN012: appendix-msn012.md
       - References: references.md
