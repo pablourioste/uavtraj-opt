@@ -3,7 +3,7 @@
 Documentation of a Bachelor's thesis (UPC – ESEIAAT) carried out with **CIMNE** and in collaboration with **Singular Aircraft**: a 3D trajectory optimiser for the amphibious heavy UAV **Flyox I**, built on trapezoidal direct collocation and IPOPT, and accelerated by a Hybrid A\* warm-start chain.
 
 !!! note "About the code"
-    The production solver is proprietary to Singular Aircraft and is not published. These pages document the **method**: equations, diagrams, pseudocode and results.
+    This work was designed exclusively as a product for [Singular Aircraft](https://singularaircraft.com/inicio). For privacy reasons towards the company, the full software repository cannot be shared. What can be shared is the knowledge: the research, the mathematical methods and their application in code. That is what these pages document, through equations, diagrams, pseudocode and results.
 
 ## How to read this documentation
 

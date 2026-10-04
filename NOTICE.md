@@ -10,6 +10,6 @@ Copyright (c) 2026 Pablo Urioste Alarcón
 
 ## Exclusions and trademarks
 
-- The production solver is proprietary to Singular Aircraft and is not part of this repository.
+- The production solver was designed exclusively as a product for Singular Aircraft (https://singularaircraft.com/inicio) and, for privacy reasons towards the company, is not part of this repository. Only the research, the mathematical methods and their application in code are shared.
 - "Singular Aircraft", "Flyox I" and "MSN012" are names and data of their owners and are used here to describe the reference aircraft only.
 - Third-party papers are cited, never redistributed (see `docs/references.md`).

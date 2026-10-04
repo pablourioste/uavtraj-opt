@@ -12,6 +12,9 @@
 > Bachelor's thesis (Universitat Politècnica de Catalunya – ESEIAAT) developed with **CIMNE** and in collaboration with **Singular Aircraft**.
 > Minimum-time / minimum-fuel 3D trajectory optimisation for a fixed-wing UAV, accelerated by a Hybrid A\* warm start.
 
+> [!IMPORTANT]
+> **Why the full solver code is not in this repository.** This work was designed exclusively as a product for [Singular Aircraft](https://singularaircraft.com/inicio). For privacy and confidentiality reasons towards the company, the complete software repository cannot be shared. What **can** be shared is the knowledge behind it: the research, the mathematical methods (formulations, constraints, cost functions, warm-start strategy) and how they are applied in code (pseudocode, diagrams, results). That is what this repository contains.
+
 📄 **Full thesis (PDF):** [`thesis/Optimal_3D_Trajectory_Planning_Thesis_Urioste.pdf`](thesis/Optimal_3D_Trajectory_Planning_Thesis_Urioste.pdf)
 
 ## TL;DR
@@ -97,7 +100,7 @@ Python · CasADi · IPOPT (MA57 / MUMPS) · C++17 (production port) · Linux · 
 
 ## About the code
 
-The production solver is proprietary to **Singular Aircraft** and is **not** part of this repository. This repo documents the **method and the results**: equations, diagrams, pseudocode and figures.
+The production solver was designed exclusively as a product for **Singular Aircraft** and, for privacy reasons towards the company, it is **not** part of this repository. This repo shares the **knowledge**: the research, the mathematical methods and their application in code, documented through equations, diagrams, pseudocode, figures and results.
 
 ## Author & citation
 
