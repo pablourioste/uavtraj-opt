@@ -1,6 +1,6 @@
-site_name: Optimal 3D Trajectory Planning for a Fixed-Wing UAV
+﻿site_name: Optimal 3D Trajectory Planning for a Fixed-Wing UAV
 site_description: Minimum-time / minimum-fuel trajectory optimisation with a Hybrid A* warm start (BSc thesis, UPC – ESEIAAT)
-repo_url: https://github.com/pablourioste/uav-optimal-trajectory-planning
+repo_url: https://github.com/pablourioste/trajectory_opt_uav
 
 theme:
   name: material

@@ -1,4 +1,4 @@
-# 14. Warm-start benchmark
+﻿# 14. Warm-start benchmark
 
 !!! abstract "TL;DR"
     Cold start fails the point-mass solver in every NFZ/waypoint-only scenario. The full pipeline converges 8/8, and the 6-DoF stage runs 1.2–4.4× faster than a direct seed, with the largest gain in the hardest scenario. The 6-DoF stage still misses the 4 s real-time target.
@@ -73,6 +73,6 @@ WS UF times are 0.5–3.0 s, within the 4 s target. In easy empty-airspace cases
 - Without warm start, scenario 5–7 UF trajectories also deviate 50–100 % from the warm-start ones, i.e. the cold solver was not finding the same optimum.
 - Only 8 scenarios, 2 repetitions each, one machine. These results show the mechanism, not a statistical guarantee.
 
-Raw aggregated table: [`results/benchmark_summary.csv`](https://github.com/pablourioste/uav-optimal-trajectory-planning/blob/main/results/benchmark_summary.csv).
+Raw aggregated table: [`results/benchmark_summary.csv`](https://github.com/pablourioste/trajectory_opt_uav/blob/main/results/benchmark_summary.csv).
 
 [← Previous](13-results-penalties.md) · [Next: Conclusions →](15-conclusions.md)

@@ -1,4 +1,4 @@
-cff-version: 1.2.0
+﻿cff-version: 1.2.0
 message: "If you use this work, please cite it as below."
 title: "Optimal 3D Trajectory Planning for a Fixed-Wing UAV: Minimum-Time / Minimum-Fuel OCP with Hybrid A* Warm Start"
 type: thesis
@@ -11,7 +11,7 @@ contact:
     given-names: "Àlex"
     affiliation: "CIMNE / Universitat Politècnica de Catalunya"
 date-released: 2026-10-04
-repository-code: "https://github.com/pablourioste/uav-optimal-trajectory-planning"
+repository-code: "https://github.com/pablourioste/trajectory_opt_uav"
 license: CC-BY-4.0
 keywords:
   - trajectory optimization
