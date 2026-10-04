@@ -9,7 +9,7 @@ Documentation of a Bachelor's thesis (UPC – ESEIAAT) carried out with **CIMNE*
 
 | If you want… | Start at |
 |---|---|
-| The one-minute version | [README](https://github.com/pablourioste/trajectory_opt_uav#readme) |
+| The one-minute version | [README](https://github.com/pablourioste/uavtraj-opt#readme) |
 | What was asked and why it is hard | [1. Problem and requirements](01-problem.md) |
 | The numbers | [14. Warm-start benchmark](14-results-warmstart.md) |
 | How the solver is built | [5. OCP and NLP](05-ocp-theory.md) → [11. Warm start](11-warm-start.md) |

@@ -11,7 +11,7 @@ contact:
     given-names: "Àlex"
     affiliation: "CIMNE / Universitat Politècnica de Catalunya"
 date-released: 2026-10-04
-repository-code: "https://github.com/pablourioste/trajectory_opt_uav"
+repository-code: "https://github.com/pablourioste/uavtraj-opt"
 license: CC-BY-4.0
 keywords:
   - trajectory optimization

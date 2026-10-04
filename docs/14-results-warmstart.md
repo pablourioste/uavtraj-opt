@@ -73,6 +73,6 @@ WS UF times are 0.5–3.0 s, within the 4 s target. In easy empty-airspace cases
 - Without warm start, scenario 5–7 UF trajectories also deviate 50–100 % from the warm-start ones, i.e. the cold solver was not finding the same optimum.
 - Only 8 scenarios, 2 repetitions each, one machine. These results show the mechanism, not a statistical guarantee.
 
-Raw aggregated table: [`results/benchmark_summary.csv`](https://github.com/pablourioste/trajectory_opt_uav/blob/main/results/benchmark_summary.csv).
+Raw aggregated table: [`results/benchmark_summary.csv`](https://github.com/pablourioste/uavtraj-opt/blob/main/results/benchmark_summary.csv).
 
 [← Previous](13-results-penalties.md) · [Next: Conclusions →](15-conclusions.md)
