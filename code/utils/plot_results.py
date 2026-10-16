@@ -336,6 +336,29 @@ def plot_missions(out):
                  "the planned and flown paths do not", fontsize=9)
     save(fig, out, "uc07_missions_overview.png")
 
+    # Cover: the four missions side by side with one shared legend.
+    titles = {"M-01": "M-01 · one no-fly zone", "M-02": "M-02 · slalom between two zones",
+              "M-03": "M-03 · two waypoints", "M-04": "M-04 · zone + waypoint + climb\n(low zone overflown)"}
+    fig, ax = plt.subplots(1, len(ids), figsize=(16, 5.6))
+    for a, mid in zip(np.atleast_1d(ax), ids):
+        _top_view(a, d, mid, _zones(d, mid), legend=False)
+        a.set_title(titles.get(mid, mid), fontsize=10)
+        a.tick_params(labelsize=7)
+    handles = [plt.Line2D([], [], color="gray", ls=":", label="straight line (cold start)"),
+               plt.Line2D([], [], color="k", lw=0.8, label="Hybrid A* path"),
+               plt.Line2D([], [], color=UF_COLOR, lw=1.6, label="point mass (UF), flown"),
+               plt.Line2D([], [], color=FC_COLOR, ls="--", lw=1.4, label="6-DoF (FC), flown"),
+               plt.matplotlib.patches.Patch(facecolor="#d62728", alpha=0.3, edgecolor="#d62728",
+                                            label="no-fly zone (margin dotted)"),
+               plt.matplotlib.patches.Patch(facecolor="none", edgecolor="gray", hatch="//",
+                                            label="zone below flight altitude"),
+               plt.Line2D([], [], color="#2ca02c", marker="D", ls="none", label="waypoint")]
+    fig.legend(handles=handles, loc="lower center", ncol=7, fontsize=8, frameon=False)
+    fig.tight_layout(rect=(0, 0.06, 1, 1))
+    fig.savefig(out / "uc07_cover.png", dpi=150)
+    plt.close(fig)
+    print("  ", out / "uc07_cover.png")
+
     for mid in ids:
         zones = _zones(d, mid)
         uf, fc = load(d / f"{mid}_uf.csv"), load(d / f"{mid}_fc.csv")

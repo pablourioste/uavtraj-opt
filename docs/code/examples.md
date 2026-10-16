@@ -1,13 +1,13 @@
 # Worked examples and design scenarios
 
 !!! abstract "TL;DR"
-    All seven use cases run on the generic UAV. In summary:
+    All seven use cases run on the generic UAV. Headline result first, then the deeper ones:
 
+    - **Missions with no-fly zones and waypoints (UC-07).** Hybrid A\* finds a flyable path in 0.01–2 s (machine-dependent). UF and FC fly it while staying 11–16 m outside every margin and passing within 1.1 m of each waypoint. The straight-line cold start runs 200–394 m deep into the zones.
     - The design charts give a classic envelope: V_stall 15.1 m/s, best L/D at 20.8 m/s, V_max 36.9 m/s and a service ceiling of 5.9 km.
     - The four typical scenarios (straight and level, climb, 180° turn, climb plus turn) are flown by both models. UF and FC agree to within 0.2–67 m, with the same fuel to 0.1 g.
     - The climbs are power-limited, and the least-fuel speed (22 m/s) sits next to the best-L/D speed.
     - The analytic Jacobian is 57–487× faster than forward differences, and the gap grows with N.
-    - In four missions with no-fly zones and waypoints, Hybrid A\* finds a flyable path in 0.01–2 s (machine-dependent). UF and FC fly it while staying 11–16 m outside every margin and passing within 1.1 m of each waypoint. The straight-line cold start runs deep into the zones.
 
 All numbers on this page come from `bash run.sh` in `code/`, using the case files in `code/data/cases/`. The figures are produced by `utils/plot_results.py`. Timings depend on the machine; the trends do not.
 
@@ -17,6 +17,56 @@ All numbers on this page come from `bash run.sh` in `code/`, using the case file
 ## The generic aircraft
 
 An 11 kg, 2.9 m-span UAV. Its mass, geometry, inertia, lift, side-force and moment derivatives follow the Aerosonde-class model of Beard & McLain (2012). Its drag polar ($C_{D0}=0.030$, $k=0.055$), propulsion (800 W, $\eta_p=0.7$, SFC 0.6 kg/kWh) and envelope limits are illustrative values chosen for this example. Data file: `code/data/aircraft/generic_uav.json` ([format](aircraft-format.md)).
+
+## UC-07 — Missions with no-fly zones and waypoints
+
+!!! tip "The headline result"
+    These missions are the cover of the repository. The rest of this page goes deeper: from the aircraft report (UC-01) to the typical design scenarios (UC-06).
+
+These are the same families as the thesis benchmark ([14. Warm-start benchmark](../14-results-warmstart.md)), scaled to the generic UAV: 25 m/s, 30° bank, and a planning radius of 143 m.
+
+| Mission | Content |
+|---|---|
+| M-01 | One NFZ on the direct route |
+| M-02 | Slalom between two NFZs |
+| M-03 | Two waypoints, no NFZ |
+| M-04 | One NFZ, one waypoint, a 150 m climb and a final heading change; a low NFZ (top 200 m) on the direct route is overflown |
+
+```text
+id      mission                        | planMs   R[m]   path |   t_UF   t_FC |  clrUF  clrFC |   wpUF   wpFC |     |D|N    |D|4N |  nfzRun nfzCold
+M-01    One NFZ on the direct route    |    943    143   3204 |  128.0  128.0 |     11     11 |    0.0    0.0 |  1.5e-01  3.7e-03 |   -0.29   10.85
+M-02    Slalom between two NFZs        |   1782    143   3753 |  150.0  149.9 |     12     12 |    0.0    0.0 |  3.7e-01  9.7e-03 |   -0.30    6.01
+M-03    Waypoints only                 |     15    143   4311 |  172.4  172.2 |    n/a    n/a |    1.1    1.0 |  5.5e-01  1.4e-02 |     n/a     n/a
+M-04    NFZ, waypoint, climb; low NFZ  |   1370    143   3921 |  159.3  157.8 |     16     16 |    0.8    0.7 |  1.4e-01  4.4e-03 |   -0.40    8.90
+```
+
+<figure markdown>
+  ![Missions overview](../assets/figures/code/uc07_missions_overview.png){ width="100%" }
+  <figcaption>Top views of the four missions. Red: active no-fly zones, with their margin dotted. Hatched grey: a zone below the flight altitude, overflown. Dotted grey: the straight-line cold start. Black: the Hybrid A* path. Blue and red dashed: the point-mass and 6-DoF trajectories. Green diamonds: waypoints, with their tolerance circle.</figcaption>
+</figure>
+
+=== "M-01 one NFZ"
+    ![M-01](../assets/figures/code/uc07_M-01.png)
+    The planner goes round the east side of the zone. Both models keep 11 m outside the 40 m margin (the planner's own safety distance is 10 m) and arrive on the final heading.
+
+=== "M-02 slalom"
+    ![M-02](../assets/figures/code/uc07_M-02.png)
+    Two zones block opposite sides of the direct route, so the path weaves between them. The clearance plot touches the margin twice, once per zone, and never crosses it.
+
+=== "M-03 waypoints"
+    ![M-03](../assets/figures/code/uc07_M-03.png)
+    Each waypoint is reached heading towards the next target. Both models pass within 1.1 m of each waypoint against a 40 m tolerance.
+
+=== "M-04 NFZ + waypoint + climb"
+    ![M-04](../assets/figures/code/uc07_M-04.png)
+    The low zone (top at 200 m) is overflown, because the flight starts at 300 m and climbs to 450 m. The planner ignores it and the direct route crosses it legitimately. The high zone A is avoided, and the waypoint and the final easterly heading are met.
+
+How to read the results:
+
+- **The cold start would be infeasible.** The straight line between the same end points gives NFZ rows of +6 to +11 in the NLP. With a 40 m margin that means 200–394 m inside the zones, or 240–434 m past the margin. The planned and flown trajectories give −0.3 to −0.4, so they are outside every margin. This is the same reason the thesis's cold start failed in its NFZ and waypoint scenarios.
+- **The planner is cheap, and the guidance holds the path.** Planning takes 0.01–2 s, depending on the machine. UF and FC end with the same clearance to the metre, and it stays above the planner's safety distance, so the 0.8 bank fraction leaves enough room to track the path.
+- **Mesh resolution.** The flown trajectories satisfy the collocation equations to 0.14–0.55 on 80 nodes, and to 0.004–0.014 on 320 nodes. As in UC-06, the mesh must resolve the turns.
+- **What is still missing for an optimum.** A trajectory like this is the warm start that the thesis then hands to the UF and FC optimisation stages. That stage, the optimiser, is not part of the public edition.
 
 ## UC-01 — Aircraft report
 
@@ -161,52 +211,5 @@ Each UF trajectory is resampled on N = 60 and 4N = 240 uniform nodes and passed 
 - **Constraints.** Every path constraint is satisfied (h ≤ 0). The closest to its limit are the power constraint during climbs, which is active, and V_NE in level flight.
 
 A trajectory like this is exactly what a warm start hands to the optimiser: flyable, nearly consistent with the collocation equations, and inside the envelope.
-
-## UC-07 — Missions with no-fly zones and waypoints
-
-These are the same families as the thesis benchmark ([14. Warm-start benchmark](../14-results-warmstart.md)), scaled to the generic UAV: 25 m/s, 30° bank, and a planning radius of 143 m.
-
-| Mission | Content |
-|---|---|
-| M-01 | One NFZ on the direct route |
-| M-02 | Slalom between two NFZs |
-| M-03 | Two waypoints, no NFZ |
-| M-04 | One NFZ, one waypoint, a 150 m climb and a final heading change; a low NFZ (top 200 m) on the direct route is overflown |
-
-```text
-id      mission                        | planMs   R[m]   path |   t_UF   t_FC |  clrUF  clrFC |   wpUF   wpFC |     |D|N    |D|4N |  nfzRun nfzCold
-M-01    One NFZ on the direct route    |    630    143   3204 |  128.0  128.0 |     11     11 |    0.0    0.0 |  1.5e-01  3.7e-03 |   -0.29   10.85
-M-02    Slalom between two NFZs        |   1459    143   3753 |  150.0  149.9 |     12     12 |    0.0    0.0 |  3.7e-01  9.7e-03 |   -0.30    6.01
-M-03    Waypoints only                 |     12    143   4311 |  172.4  172.2 |    n/a    n/a |    1.1    1.0 |  5.5e-01  1.4e-02 |     n/a     n/a
-M-04    NFZ, waypoint, climb; low NFZ  |   1019    143   3921 |  159.3  157.8 |     16     16 |    0.8    0.7 |  1.4e-01  4.4e-03 |   -0.40    8.90
-```
-
-<figure markdown>
-  ![Missions overview](../assets/figures/code/uc07_missions_overview.png){ width="100%" }
-  <figcaption>Top views of the four missions. Red: active no-fly zones, with their margin dotted. Hatched grey: a zone below the flight altitude, overflown. Dotted grey: the straight-line cold start. Black: the Hybrid A* path. Blue and red dashed: the point-mass and 6-DoF trajectories. Green diamonds: waypoints, with their tolerance circle.</figcaption>
-</figure>
-
-=== "M-01 one NFZ"
-    ![M-01](../assets/figures/code/uc07_M-01.png)
-    The planner goes round the east side of the zone. Both models keep 11 m outside the 40 m margin (the planner's own safety distance is 10 m) and arrive on the final heading.
-
-=== "M-02 slalom"
-    ![M-02](../assets/figures/code/uc07_M-02.png)
-    Two zones block opposite sides of the direct route, so the path weaves between them. The clearance plot touches the margin twice, once per zone, and never crosses it.
-
-=== "M-03 waypoints"
-    ![M-03](../assets/figures/code/uc07_M-03.png)
-    Each waypoint is reached heading towards the next target. Both models pass within 1.1 m of each waypoint against a 40 m tolerance.
-
-=== "M-04 NFZ + waypoint + climb"
-    ![M-04](../assets/figures/code/uc07_M-04.png)
-    The low zone (top at 200 m) is overflown, because the flight starts at 300 m and climbs to 450 m. The planner ignores it and the direct route crosses it legitimately. The high zone A is avoided, and the waypoint and the final easterly heading are met.
-
-How to read the results:
-
-- **The cold start would be infeasible.** The straight line between the same end points gives NFZ rows of +6 to +11 in the NLP. With a 40 m margin that means 240–430 m inside the zones. The planned and flown trajectories give −0.3 to −0.4, so they are outside every margin. This is the same reason the thesis's cold start failed in its NFZ and waypoint scenarios.
-- **The planner is cheap, and the guidance holds the path.** Planning takes 0.01–2 s, depending on the machine. UF and FC end with the same clearance to the metre, and it stays above the planner's safety distance, so the 0.8 bank fraction leaves enough room to track the path.
-- **Mesh resolution.** The flown trajectories satisfy the collocation equations to 0.14–0.55 on 80 nodes, and to 0.004–0.014 on 320 nodes. As in UC-06, the mesh must resolve the turns.
-- **What is still missing for an optimum.** A trajectory like this is the warm start that the thesis then hands to the UF and FC optimisation stages. That stage, the optimiser, is not part of the public edition.
 
 [← Use cases](use-cases.md) · [Aircraft file format →](aircraft-format.md)

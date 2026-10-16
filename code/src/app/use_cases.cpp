@@ -4,6 +4,7 @@
 #include <chrono>
 #include <cmath>
 #include <cstdio>
+#include <limits>
 #include <stdexcept>
 
 #include "ofc/aircraft.hpp"
@@ -596,9 +597,11 @@ int missionScenarios(const json& c) {
                     sc.id.c_str(), sc.title.substr(0, 30).c_str(), pr.millis, radius, pr.length, runUf.flightTime,
                     runFc.flightTime, fmtClr(clrUf).c_str(), fmtClr(clrFc).c_str(), wpUf, wpFc, chk.defect, fine.defect,
                     fmtRow(chk.nfzRun).c_str(), fmtRow(chk.nfzCold).c_str(), ok ? "" : "  (CHECK)");
+        // Missions without active zones have no clearance or NFZ rows: NaN in the CSV.
+        auto orNan = [](double v) { return std::fabs(v) > 1e299 ? std::numeric_limits<double>::quiet_NaN() : v; };
         summary.push_back({double(idx++), pr.millis, double(pr.expansions), radius, pr.length, runUf.flightTime,
-                           runFc.flightTime, runUf.fuel, runFc.fuel, clrUf, clrFc, wpUf, wpFc, chk.defect, fine.defect,
-                           chk.nfzRun, chk.nfzCold});
+                           runFc.flightTime, runUf.fuel, runFc.fuel, orNan(clrUf), orNan(clrFc), wpUf, wpFc, chk.defect,
+                           fine.defect, orNan(chk.nfzRun), orNan(chk.nfzCold)});
     }
     io::writeCsv(out + "/summary.csv",
                  {"index", "planner_ms", "expansions", "radius_m", "path_m", "time_uf", "time_fc", "fuel_uf", "fuel_fc",
