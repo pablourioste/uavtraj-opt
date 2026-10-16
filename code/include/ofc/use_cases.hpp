@@ -11,6 +11,8 @@
 //                               turn performance
 //   UC-06  Design scenarios     typical missions flown by UF and FC, speed
 //                               trade-off and evaluation in the NLP
+//   UC-07  Constrained missions no-fly zones and waypoints: Hybrid A* path,
+//                               L1 guidance for UF and FC, NFZ rows in the NLP
 
 #include <string>
 
@@ -24,6 +26,7 @@ int simulation(const nlohmann::json& c);
 int transcriptionCheck(const nlohmann::json& c);
 int designCharts(const nlohmann::json& c);
 int designScenarios(const nlohmann::json& c);
+int missionScenarios(const nlohmann::json& c);
 
 // Dispatches on the "use_case" field. Returns the process exit code.
 int run(const std::string& casePath);

@@ -7,6 +7,10 @@ Each module has one header in `code/include/ofc/` and one source in `code/src/`.
 ```mermaid
 flowchart TD
     APP[app: use_cases, io] --> SCN[scenarios: guidance, autopilot]
+    APP --> PLN[planning: Dubins, Hybrid A*]
+    SCN --> PLN
+    PLN --> ENV[model: environment]
+    FORM --> ENV
     APP --> FORM[formulation: transcription]
     SCN --> NUM
     FORM --> NUM[numerics: numerics, trim]
@@ -29,7 +33,9 @@ flowchart TD
 | `numerics.hpp` | Finite-difference Jacobian (forward or central), dense solve, Newton, RK4 |
 | `trim.hpp` | UF trim (closed form) and FC trim (Newton on u̇, ẇ, q̇) |
 | `transcription.hpp` | `TrapezoidalUF`: decision vector, defects, sparse Jacobian, constraints, cost, guesses |
-| `scenario.hpp` | Design scenarios: shared guidance, UF dynamic inversion, FC autopilot |
+| `environment.hpp` | No-fly zones (polygon, altitude band, margin, signed distance) and waypoints |
+| `planner.hpp` | Dubins paths (six words), Hybrid A\* search, mission legs through waypoints |
+| `scenario.hpp` | Scenarios and missions: guidance (heading step or L1 path following), UF dynamic inversion, FC autopilot |
 | `use_cases.hpp`, `io.hpp` | Command-line use cases, JSON case files, CSV output |
 
 The compiled library `ofc_core` holds everything except `main.cpp`. Both the `ofc` executable and `ofc_tests` link against it.

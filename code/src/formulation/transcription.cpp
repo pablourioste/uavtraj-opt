@@ -143,10 +143,10 @@ Vec TrapezoidalUF::boundaryResiduals(const Vec& z) const {
     return r;
 }
 
-const std::vector<std::string>& TrapezoidalUF::pathConstraintNames() {
-    static const std::vector<std::string> names{"stall",     "power",    "v_ne",       "load_max",
-                                                "load_min",  "altitude", "bank",       "gamma_max",
-                                                "gamma_min", "cl_max",   "thrust_min", "bank_rate"};
+std::vector<std::string> TrapezoidalUF::pathConstraintNames() const {
+    std::vector<std::string> names{"stall",     "power",  "v_ne",      "load_max", "load_min",   "altitude",
+                                   "bank",      "gamma_max", "gamma_min", "cl_max",   "thrust_min", "bank_rate"};
+    for (const env::NoFlyZone& z : mission_.nfz) names.push_back("nfz:" + z.id);
     return names;
 }
 
@@ -173,12 +173,17 @@ Vec TrapezoidalUF::pathConstraints(const Vec& z) const {
         h.push_back(u[CL] / ac_.clMax() - 1.0);
         h.push_back(-u[THRUST] / scales_.u[THRUST]);
         h.push_back(u[BANK_RATE] * u[BANK_RATE] / (ac_.actuators.p_max * ac_.actuators.p_max) - 1.0);
+        // No-fly zones: keep the margin outside every zone whose altitude band contains the node.
+        for (const env::NoFlyZone& zone : mission_.nfz) {
+            const double scale = std::max(zone.margin, 25.0);
+            h.push_back(zone.activeBetween(alt, alt) ? (zone.margin - zone.signedDistance(x[X], x[Y])) / scale : -1.0);
+        }
     }
     return h;
 }
 
 std::vector<TrapezoidalUF::PathConstraint> TrapezoidalUF::pathSummary(const Vec& z) const {
-    const auto& names = pathConstraintNames();
+    const std::vector<std::string> names = pathConstraintNames();
     const Vec h = pathConstraints(z);
     std::vector<PathConstraint> out(names.size());
     for (std::size_t c = 0; c < names.size(); ++c) out[c].name = names[c];

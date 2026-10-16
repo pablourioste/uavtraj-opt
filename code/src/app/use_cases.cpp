@@ -11,6 +11,7 @@
 #include "ofc/io.hpp"
 #include "ofc/numerics.hpp"
 #include "ofc/performance.hpp"
+#include "ofc/planner.hpp"
 #include "ofc/point_mass.hpp"
 #include "ofc/rigid_body.hpp"
 #include "ofc/scenario.hpp"
@@ -365,9 +366,11 @@ struct NlpCheck {
     double defect = 0.0, boundary = 0.0, costTime = 0.0, costFuel = 0.0;
     std::string tightest;
     double tightestValue = -1e300;
+    double nfzRun = -1e300;  // worst NFZ row of the flown trajectory (<= 0 satisfied)
+    double nfzCold = -1e300; // worst NFZ row of the straight-line cold start
 };
 
-NlpCheck evaluateInNlp(const Aircraft& ac, const Run& r, int N) {
+NlpCheck evaluateInNlp(const Aircraft& ac, const Run& r, int N, const std::vector<env::NoFlyZone>& nfz = {}) {
     const double tf = r.flightTime;
     std::vector<Vec> X(N), U(N);
     for (int k = 0; k < N; ++k) {
@@ -386,6 +389,7 @@ NlpCheck evaluateInNlp(const Aircraft& ac, const Run& r, int N) {
     ms.headingEnd = X.back()[uf::CHI];
     ms.speedStart = X.front()[uf::V];
     ms.betaControl = 0.01;
+    ms.nfz = nfz;
 
     NlpCheck chk;
     const double dist = r.s.back();
@@ -398,12 +402,40 @@ NlpCheck evaluateInNlp(const Aircraft& ac, const Run& r, int N) {
     chk.boundary = maxAbs(nlp.boundaryResiduals(z));
     chk.costTime = nlpTime.cost(z);
     chk.costFuel = nlp.cost(z);
-    for (const auto& pc : nlp.pathSummary(z))
+    for (const auto& pc : nlp.pathSummary(z)) {
         if (pc.name != "thrust_min" && pc.worst > chk.tightestValue) { // a sign bound, not a performance limit
             chk.tightestValue = pc.worst;
             chk.tightest = pc.name;
         }
+        if (pc.name.rfind("nfz:", 0) == 0) chk.nfzRun = std::max(chk.nfzRun, pc.worst);
+    }
+    for (const auto& pc : nlp.pathSummary(coldStartGuess(nlp, ac, ms)))
+        if (pc.name.rfind("nfz:", 0) == 0) chk.nfzCold = std::max(chk.nfzCold, pc.worst);
     return chk;
+}
+
+// Smallest NFZ clearance along a run [m] (negative = inside the margin), and
+// the largest horizontal miss distance over the waypoints [m].
+double runClearance(const Run& r, const std::vector<env::NoFlyZone>& zones) {
+    double c = 1e300;
+    for (std::size_t k = 0; k < r.x.size(); k += 5) {
+        const scenario::Sample s = scenario::sampleOf(r, k);
+        c = std::min(c, env::minClearance(zones, s.x, s.y, -s.z));
+    }
+    return c;
+}
+
+double waypointMiss(const Run& r, const std::vector<env::Waypoint>& wps) {
+    double worst = 0.0;
+    for (const env::Waypoint& w : wps) {
+        double best = 1e300;
+        for (std::size_t k = 0; k < r.x.size(); ++k) {
+            const scenario::Sample s = scenario::sampleOf(r, k);
+            best = std::min(best, std::hypot(s.x - w.position.x, s.y - w.position.y));
+        }
+        worst = std::max(worst, best);
+    }
+    return worst;
 }
 
 } // namespace
@@ -479,6 +511,110 @@ int designScenarios(const json& c) {
     return 0;
 }
 
+// ── UC-07 ─────────────────────────────────────────────────────────────────
+int missionScenarios(const json& c) {
+    const Aircraft ac = loadAircraft(c);
+    const std::string out = c.value("output", std::string("output/uc07"));
+    const int N = c.value("nodes", 80);
+    const json pj = c.value("planner", json::object());
+    plan::PlannerConfig cfg;
+    cfg.cell = pj.value("cell_m", cfg.cell);
+    cfg.headingBins = pj.value("heading_bins", cfg.headingBins);
+    cfg.step = pj.value("step_m", cfg.step);
+    const double bankFraction = pj.value("bank_fraction", 0.8);
+    const double safety = pj.value("safety_m", 10.0);
+    header("UC-07  Missions with no-fly zones and waypoints (Hybrid A* + L1 guidance, UF and FC)");
+
+    std::printf("%-7s %-30s | %6s %6s %6s | %6s %6s | %6s %6s | %6s %6s | %8s %8s | %7s %7s\n", "id", "mission",
+                "planMs", "R[m]", "path", "t_UF", "t_FC", "clrUF", "clrFC", "wpUF", "wpFC", "|D|N", "|D|4N", "nfzRun",
+                "nfzCold");
+    std::vector<Vec> summary;
+    int status = 0, idx = 0;
+    for (const json& mj : c.at("missions")) {
+        scenario::Scenario sc = scenario::Scenario::fromJson(mj, ac);
+        std::vector<env::NoFlyZone> zones;
+        for (const json& z : mj.value("nfz", json::array())) zones.push_back(env::nfzFromJson(z));
+        std::vector<env::Waypoint> wps;
+        for (const json& w : mj.value("waypoints", json::array())) wps.push_back(env::waypointFromJson(w));
+        const plan::Pose2 start{sc.x0, sc.y0, sc.heading0};
+        const plan::Pose2 goal{mj.at("end").at(0).get<double>(), mj.at("end").at(1).get<double>(),
+                               deg2rad(mj.value("end_heading_deg", 0.0))};
+        const double radius = sc.V * sc.V / (isa::g0 * std::tan(bankFraction * sc.bankMax));
+        const double hLow = std::min(sc.h0, sc.h0 + sc.climb), hHigh = std::max(sc.h0, sc.h0 + sc.climb);
+
+        const plan::PlanResult pr = plan::planMission(start, wps, goal, radius, zones, hLow, hHigh, safety, cfg);
+        if (!pr.found) {
+            std::printf("%-7s %-30s | planner found no path after %d expansions\n", sc.id.c_str(),
+                        sc.title.substr(0, 30).c_str(), pr.expansions);
+            status = 2;
+            continue;
+        }
+        sc.path = pr.path;
+        const Run runUf = scenario::fly(ac, sc, Model::PointMass);
+        const Run runFc = scenario::fly(ac, sc, Model::RigidBody);
+
+        // Geometry and trajectories for plotting.
+        std::vector<Vec> pathRows, zoneRows, wpRows;
+        for (const plan::Pose2& p : pr.path) pathRows.push_back({p.x, p.y, rad2deg(p.psi)});
+        for (std::size_t zi = 0; zi < zones.size(); ++zi)
+            for (const env::Vec2& v : zones[zi].polygon)
+                zoneRows.push_back({double(zi), v.x, v.y, zones[zi].hMin, std::min(zones[zi].hMax, 1e6),
+                                    zones[zi].margin, zones[zi].activeBetween(hLow, hHigh) ? 1.0 : 0.0});
+        for (const env::Waypoint& w : wps) wpRows.push_back({w.position.x, w.position.y, w.tolerance});
+        wpRows.insert(wpRows.begin(), {start.x, start.y, -1.0});
+        wpRows.push_back({goal.x, goal.y, -2.0});
+        io::writeCsv(out + "/" + sc.id + "_path.csv", {"x", "y", "psi_deg"}, pathRows);
+        io::writeCsv(out + "/" + sc.id + "_nfz.csv", {"zone", "x", "y", "h_min", "h_max", "margin", "active"},
+                     zoneRows);
+        io::writeCsv(out + "/" + sc.id + "_points.csv", {"x", "y", "tolerance"}, wpRows);
+        const std::vector<std::string> base{"t", "s", "x", "y", "h", "V", "gamma_deg", "chi_deg", "bank_deg", "m"};
+        auto hdr = [&](std::vector<std::string> extra) {
+            std::vector<std::string> h = base;
+            h.insert(h.end(), extra.begin(), extra.end());
+            return h;
+        };
+        io::writeCsv(out + "/" + sc.id + "_uf.csv", hdr({"T", "CL", "p"}), runRows(runUf));
+        io::writeCsv(out + "/" + sc.id + "_fc.csv", hdr({"T", "de", "da", "dr"}), runRows(runFc));
+
+        const double clrUf = runClearance(runUf, zones), clrFc = runClearance(runFc, zones);
+        const double wpUf = waypointMiss(runUf, wps), wpFc = waypointMiss(runFc, wps);
+        const NlpCheck chk = evaluateInNlp(ac, runUf, N, zones);
+        const NlpCheck fine = evaluateInNlp(ac, runUf, 4 * N, zones);
+        double wpTol = 1e300;
+        for (const env::Waypoint& w : wps) wpTol = std::min(wpTol, w.tolerance);
+        const bool ok = runUf.completed && runFc.completed && clrUf >= 0.0 && clrFc >= 0.0 &&
+                        (wps.empty() || std::max(wpUf, wpFc) <= wpTol);
+        if (!ok) status = 2;
+
+        auto fmtClr = [](double v) { return v > 1e299 ? std::string("n/a") : std::to_string(int(std::lround(v))); };
+        auto fmtRow = [](double v) {
+            char buf[16];
+            std::snprintf(buf, sizeof buf, "%.2f", v);
+            return v < -1e299 ? std::string("n/a") : std::string(buf);
+        };
+        std::printf("%-7s %-30s | %6.0f %6.0f %6.0f | %6.1f %6.1f | %6s %6s | %6.1f %6.1f | %8.1e %8.1e | %7s %7s%s\n",
+                    sc.id.c_str(), sc.title.substr(0, 30).c_str(), pr.millis, radius, pr.length, runUf.flightTime,
+                    runFc.flightTime, fmtClr(clrUf).c_str(), fmtClr(clrFc).c_str(), wpUf, wpFc, chk.defect, fine.defect,
+                    fmtRow(chk.nfzRun).c_str(), fmtRow(chk.nfzCold).c_str(), ok ? "" : "  (CHECK)");
+        summary.push_back({double(idx++), pr.millis, double(pr.expansions), radius, pr.length, runUf.flightTime,
+                           runFc.flightTime, runUf.fuel, runFc.fuel, clrUf, clrFc, wpUf, wpFc, chk.defect, fine.defect,
+                           chk.nfzRun, chk.nfzCold});
+    }
+    io::writeCsv(out + "/summary.csv",
+                 {"index", "planner_ms", "expansions", "radius_m", "path_m", "time_uf", "time_fc", "fuel_uf",
+                  "fuel_fc", "clearance_uf_m", "clearance_fc_m", "wp_miss_uf_m", "wp_miss_fc_m", "defect_N",
+                  "defect_4N", "nfz_run", "nfz_cold"},
+                 summary);
+    std::printf("\ncolumns: planMs = Hybrid A* time; R = planning turn radius; path = planned length [m];\n"
+                "t = flight time [s]; clr = smallest distance to an active NFZ beyond its margin [m] (>= 0 ok);\n"
+                "wp = largest waypoint miss distance [m]; |D| = collocation defect of the flown UF trajectory\n"
+                "on N = %d and 4N nodes; nfzRun / nfzCold = worst NFZ row of the NLP (<= 0 satisfied) for the\n"
+                "flown trajectory and for a straight-line cold start between the same end points.\n",
+                N);
+    std::printf("CSV written to %s/\n", out.c_str());
+    return status;
+}
+
 int run(const std::string& casePath) {
     const json c = io::readJson(casePath);
     const std::string uc = c.value("use_case", std::string());
@@ -488,7 +624,8 @@ int run(const std::string& casePath) {
     if (uc == "UC-04") return transcriptionCheck(c);
     if (uc == "UC-05") return designCharts(c);
     if (uc == "UC-06") return designScenarios(c);
-    throw std::invalid_argument("unknown use_case '" + uc + "' in " + casePath + " (expected UC-01 ... UC-06)");
+    if (uc == "UC-07") return missionScenarios(c);
+    throw std::invalid_argument("unknown use_case '" + uc + "' in " + casePath + " (expected UC-01 ... UC-07)");
 }
 
 } // namespace ofc::cases

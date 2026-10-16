@@ -99,4 +99,35 @@ Each scenario is flown by both models with the same guidance (see [Formulation i
 
 Outputs per scenario: `<id>_uf.csv`, `<id>_fc.csv` and `<id>_speed_trade.csv`, plus a `summary.csv` for all of them.
 
+## UC-07 — Missions with no-fly zones and waypoints
+
+```json
+{ "use_case": "UC-07", "aircraft": "...", "nodes": 80,
+  "planner": { "cell_m": 20, "heading_bins": 72, "step_m": 30, "bank_fraction": 0.8, "safety_m": 10 },
+  "missions": [
+    { "id": "M-04", "title": "NFZ, waypoint, climb; low NFZ overflown",
+      "h0_m": 300, "climb_m": 150, "V_mps": 25, "bank_deg": 30,
+      "start": [0, 0], "start_heading_deg": 0, "end": [3300, 1500], "end_heading_deg": 90,
+      "nfz": [ { "id": "A", "polygon": [[1500, 300], [2200, 300], [2200, 1150], [1500, 1150]],
+                 "h_min_m": 0, "h_max_m": 1500, "margin_m": 40 } ],
+      "waypoints": [ { "id": "WP1", "position": [2700, 900], "tolerance_m": 40 } ] } ],
+  "output": "output/uc07" }
+```
+
+- **Coordinates.** Positions are `[north, east]` in metres, and headings are in degrees from north towards east.
+- **Polygons.** Each `polygon` is a simple polygon, in any orientation.
+- **Altitude band.** A zone whose band does not overlap the flight's altitudes (`h0_m` to `h0_m + climb_m`) is ignored, that is, overflown.
+- **Planner settings.** `planner` sets the search grid, the primitive length, the fraction of the bank limit used for the planning radius, and an extra safety distance on top of each zone's margin.
+
+For each mission the report gives:
+
+- the planner time, the turn radius and the planned length;
+- flight times for UF and FC;
+- the smallest distance to an active zone beyond its margin (≥ 0 is acceptable);
+- the largest waypoint miss distance;
+- the collocation defect on N and 4N nodes;
+- the worst NFZ row of the NLP for the flown trajectory and for a straight-line cold start (≤ 0 satisfied).
+
+The program exits with code 2 if a path is not found or a check fails. Outputs per mission: `<id>_path.csv`, `<id>_uf.csv`, `<id>_fc.csv`, `<id>_nfz.csv` and `<id>_points.csv`, plus a `summary.csv`.
+
 [← Formulation in code](formulation.md) · [Next: Worked examples →](examples.md)

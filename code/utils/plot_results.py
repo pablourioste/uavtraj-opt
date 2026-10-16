@@ -248,13 +248,130 @@ def plot_scenarios(out):
     save(fig, out, "uc06_speed_trade.png")
 
 
+# ── UC-07 ───────────────────────────────────────────────────────────────────
+def _signed_distance(px, py, poly):
+    """Distance to a polygon boundary, positive outside (vectorised; poly = [[north, east], ...])."""
+    px, py = np.asarray(px, float), np.asarray(py, float)
+    d = np.full(px.shape, np.inf)
+    inside = np.zeros(px.shape, bool)
+    n = len(poly)
+    for i in range(n):
+        ax_, ay = poly[i]
+        bx, by = poly[(i + 1) % n]
+        vx, vy = bx - ax_, by - ay
+        t = np.clip(((px - ax_) * vx + (py - ay) * vy) / (vx * vx + vy * vy), 0.0, 1.0)
+        d = np.minimum(d, np.hypot(px - (ax_ + t * vx), py - (ay + t * vy)))
+        cross = ((ay > py) != (by > py)) & (px < (bx - ax_) * (py - ay) / np.where(by - ay == 0, 1e-12, by - ay) + ax_)
+        inside ^= cross
+    return np.where(inside, -d, d)
+
+
+def _zones(d, mid):
+    z = load(d / f"{mid}_nfz.csv") if (d / f"{mid}_nfz.csv").stat().st_size > 60 else None
+    if z is None:
+        return []
+    out = []
+    for k in np.unique(z["zone"]):
+        m = z["zone"] == k
+        out.append({"poly": np.column_stack([z["x"][m], z["y"][m]]), "margin": z["margin"][m][0],
+                    "active": z["active"][m][0] > 0.5, "h": (z["h_min"][m][0], z["h_max"][m][0])})
+    return out
+
+
+def _clearance(zones, x, y):
+    act = [z for z in zones if z["active"]]
+    if not act:
+        return None
+    return np.min([_signed_distance(x, y, z["poly"]) - z["margin"] for z in act], axis=0)
+
+
+def _top_view(a, d, mid, zones, legend=True):
+    pts = load(d / f"{mid}_points.csv")
+    path, uf, fc = load(d / f"{mid}_path.csv"), load(d / f"{mid}_uf.csv"), load(d / f"{mid}_fc.csv")
+    for z in zones:
+        poly = np.vstack([z["poly"], z["poly"][:1]])
+        if z["active"]:
+            a.fill(poly[:, 1], poly[:, 0], color="#d62728", alpha=0.25, lw=0)
+            a.plot(poly[:, 1], poly[:, 0], color="#d62728", lw=1)
+            # Exact margin contour: signed distance = margin.
+            xs = np.linspace(poly[:, 0].min() - 2 * z["margin"], poly[:, 0].max() + 2 * z["margin"], 160)
+            ys = np.linspace(poly[:, 1].min() - 2 * z["margin"], poly[:, 1].max() + 2 * z["margin"], 160)
+            X, Y = np.meshgrid(xs, ys, indexing="ij")
+            a.contour(Y, X, _signed_distance(X, Y, z["poly"]), levels=[z["margin"]], colors="#d62728",
+                      linestyles=":", linewidths=0.8)
+        else:
+            a.fill(poly[:, 1], poly[:, 0], facecolor="none", edgecolor="gray", hatch="//", lw=0.8)
+            a.annotate(f"overflown\n(top {z['h'][1]:.0f} m)", (poly[:, 1].mean(), poly[:, 0].mean()), fontsize=6,
+                       ha="center", va="center", color="gray")
+    s, e = (pts["x"][0], pts["y"][0]), (pts["x"][-1], pts["y"][-1])
+    a.plot([s[1], e[1]], [s[0], e[0]], ":", color="gray", lw=1, label="straight line (cold start)")
+    a.plot(path["y"], path["x"], color="k", lw=0.8, label="Hybrid A* path")
+    a.plot(uf["y"], uf["x"], color=UF_COLOR, lw=1.4, label="UF flown")
+    a.plot(fc["y"], fc["x"], color=FC_COLOR, ls="--", lw=1.2, label="FC flown")
+    for i in range(1, len(pts["x"]) - 1):
+        a.plot(pts["y"][i], pts["x"][i], "D", color="#2ca02c", ms=5)
+        a.add_patch(plt.Circle((pts["y"][i], pts["x"][i]), pts["tolerance"][i], fill=False, color="#2ca02c", lw=0.8))
+    a.plot(s[1], s[0], "^", color="k", ms=6)
+    a.plot(e[1], e[0], "s", color="k", ms=5)
+    a.set(xlabel="East [m]", ylabel="North [m]")
+    a.set_aspect("equal", adjustable="datalim")
+    if legend:
+        a.legend(fontsize=6, loc="lower right")
+
+
+def plot_missions(out):
+    d = ROOT / "uc07"
+    paths = sorted(d.glob("M-*_path.csv"))
+    if not paths:
+        print("skip UC-07: run data/cases/uc07_nfz_missions.json first")
+        return
+    ids = [p.stem.replace("_path", "") for p in paths]
+
+    fig, ax = plt.subplots(2, 2, figsize=(11, 10))
+    for a, mid in zip(ax.flat, ids):
+        zones = _zones(d, mid)
+        _top_view(a, d, mid, zones, legend=(mid == ids[0]))
+        a.set_title(mid, fontsize=9)
+    fig.suptitle("Missions with no-fly zones and waypoints: straight line (dotted) crosses the zones, "
+                 "the planned and flown paths do not", fontsize=9)
+    save(fig, out, "uc07_missions_overview.png")
+
+    for mid in ids:
+        zones = _zones(d, mid)
+        uf, fc = load(d / f"{mid}_uf.csv"), load(d / f"{mid}_fc.csv")
+        fig = plt.figure(figsize=(12, 6.5))
+        gs = fig.add_gridspec(3, 2, width_ratios=[1.25, 1])
+        _top_view(fig.add_subplot(gs[:, 0]), d, mid, zones)
+        a = fig.add_subplot(gs[0, 1])
+        a.plot(uf["s"], uf["h"], color=UF_COLOR, label="UF")
+        a.plot(fc["s"], fc["h"], color=FC_COLOR, ls="--", label="FC")
+        a.set(ylabel="altitude [m]", title=f"{mid}: profiles along the path")
+        a.legend(fontsize=7)
+        a = fig.add_subplot(gs[1, 1])
+        a.plot(uf["s"], uf["bank_deg"], color=UF_COLOR)
+        a.plot(fc["s"], fc["bank_deg"], color=FC_COLOR, ls="--")
+        a.set(ylabel="bank [deg]")
+        a = fig.add_subplot(gs[2, 1])
+        cu, cf = _clearance(zones, uf["x"], uf["y"]), _clearance(zones, fc["x"], fc["y"])
+        if cu is None:
+            a.text(0.5, 0.5, "no active no-fly zone", ha="center", va="center", transform=a.transAxes, color="gray")
+        else:
+            a.plot(uf["s"], cu, color=UF_COLOR)
+            a.plot(fc["s"], cf, color=FC_COLOR, ls="--")
+            a.axhline(0.0, color="#d62728", lw=1, label="margin")
+            a.set_ylim(-20, min(400, max(cu.max(), cf.max())))
+            a.legend(fontsize=7)
+        a.set(xlabel="along-path distance [m]", ylabel="NFZ clearance [m]")
+        save(fig, out, f"uc07_{mid}.png")
+
+
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("--out", default=str(ROOT / "figures"), help="directory for the PNG files")
     args = parser.parse_args()
     out = pathlib.Path(args.out)
     out.mkdir(parents=True, exist_ok=True)
-    for fn in (plot_simulation, plot_transcription, plot_design_charts, plot_scenarios):
+    for fn in (plot_simulation, plot_transcription, plot_design_charts, plot_scenarios, plot_missions):
         fn(out)
     return 0
 

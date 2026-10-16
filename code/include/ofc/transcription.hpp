@@ -16,6 +16,7 @@
 #include <vector>
 
 #include "ofc/aircraft.hpp"
+#include "ofc/environment.hpp"
 #include "ofc/point_mass.hpp"
 #include "ofc/types.hpp"
 
@@ -43,6 +44,7 @@ struct Mission {
     Vec3 wind{0.0, 0.0, 0.0}; // constant NED wind [m/s]
     double alpha = 0.0;       // 0 = minimum time, 1 = minimum fuel
     double betaControl = 0.0; // smoothness weight on control increments
+    std::vector<env::NoFlyZone> nfz; // zones enforced as path constraints
 };
 
 class TrapezoidalUF {
@@ -73,7 +75,7 @@ public:
     };
     Vec pathConstraints(const Vec& z) const; // all nodes, all constraints
     std::vector<PathConstraint> pathSummary(const Vec& z) const;
-    static const std::vector<std::string>& pathConstraintNames();
+    std::vector<std::string> pathConstraintNames() const; // envelope rows, then one "nfz:<id>" row per zone
 
     // ── Cost (Bolza: time + fuel + smoothness) ──────────────────────────
     double cost(const Vec& z) const;

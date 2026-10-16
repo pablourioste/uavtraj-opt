@@ -5,12 +5,13 @@ C++17, no dependencies beyond the standard library and a bundled `nlohmann/json`
 - a **generic aircraft** described in JSON;
 - the point-mass (UF) and 6-DoF (FC) models;
 - the trapezoidal collocation of the optimal-control problem, with an analytic sparse Jacobian, constraints and cost;
-- trim, simulation, design charts, and four typical design scenarios.
+- trim, simulation, design charts, and four typical design scenarios;
+- missions that avoid no-fly zones and pass through waypoints (Hybrid A\* planner, L1 path following).
 
-The optimiser and the mission-level features of the production solver are not included.
+The optimiser and the remaining production features (terrain, geofences, the optimisation stages of the warm-start chain) are not included.
 
 ```bash
-bash run.sh        # build, 20 tests, all 6 use cases, figures in output/figures/
+bash run.sh        # build, 25 tests, all 7 use cases, figures in output/figures/
 .\run.ps1          # same on Windows PowerShell
 ```
 
@@ -22,6 +23,7 @@ bash run.sh        # build, 20 tests, all 6 use cases, figures in output/figures
 | UC-04 Transcription check | `data/cases/uc04_transcription.json` |
 | UC-05 Design charts | `data/cases/uc05_design_charts.json` |
 | UC-06 Typical design scenarios | `data/cases/uc06_design_scenarios.json` |
+| UC-07 Missions with no-fly zones and waypoints | `data/cases/uc07_nfz_missions.json` |
 
 Documentation:
 

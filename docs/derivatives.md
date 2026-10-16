@@ -1,7 +1,7 @@
 # Derivatives: finite differences (v1) and exact derivatives (v2)
 
 !!! abstract "TL;DR"
-    Every number in the Results chapters comes from **v1** of the solver, which built the constraint Jacobian and the cost gradient by **forward finite differences**. A later version (**v2**) computes them exactly by automatic differentiation. Preliminary measurements reported in the thesis conclusions show the point-mass (UF) stage about **3× faster**. The public code reproduces the mechanism: on the generic aircraft, an analytic sparse Jacobian is 54–529× cheaper to build than a finite-difference one, and the gap grows with the number of nodes.
+    Every number in the Results chapters comes from **v1** of the solver, which built the constraint Jacobian and the cost gradient by **forward finite differences**. A later version (**v2**) computes them exactly by automatic differentiation. Preliminary measurements reported in the thesis conclusions show the point-mass (UF) stage about **3× faster**. The public code reproduces the mechanism: on the generic aircraft, an analytic sparse Jacobian is 57–487× cheaper to build than a finite-difference one, and the gap grows with the number of nodes.
 
 ## Why it matters for an interior-point solver
 
@@ -26,10 +26,10 @@ Use case UC-04 of the [public code](code/index.md) builds the trapezoidal-colloc
 
 | N | variables | analytic [ms] | forward differences [ms] | ratio | max relative difference |
 |---:|---:|---:|---:|---:|---:|
-| 25 | 276 | 0.046 | 2.49 | 54× | 6.5e-11 |
-| 50 | 551 | 0.082 | 10.1 | 123× | 8.1e-11 |
-| 100 | 1101 | 0.193 | 39.7 | 206× | 8.8e-11 |
-| 200 | 2201 | 0.303 | 160 | 529× | 7.7e-11 |
+| 25 | 276 | 0.098 | 5.5 | 57× | 6.5e-11 |
+| 50 | 551 | 0.180 | 20.7 | 115× | 8.1e-11 |
+| 100 | 1101 | 0.377 | 113 | 299× | 8.8e-11 |
+| 200 | 2201 | 0.654 | 319 | 487× | 7.7e-11 |
 
 <figure markdown>
   ![Jacobian cost](assets/figures/code/uc04_jacobian_and_seed.png){ width="90%" }

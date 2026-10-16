@@ -85,10 +85,11 @@ Details: [Conclusions](docs/15-conclusions.md) · [Benchmark](docs/14-results-wa
 - the point-mass (UF) and 6-DoF (FC) models;
 - trapezoidal collocation with a sparse analytic Jacobian, envelope and boundary constraints, and the time–fuel cost;
 - trim, simulation, and the aircraft's design charts;
-- the four typical design scenarios flown by both models.
+- the four typical design scenarios flown by both models;
+- missions that avoid no-fly zones and pass through waypoints: a Hybrid A\* planner and L1 path following, with the NFZs checked as NLP constraints.
 
 ```bash
-cd code && bash run.sh      # build, 20 tests, 6 use cases, figures   (Windows: .\run.ps1)
+cd code && bash run.sh      # build, 25 tests, 7 use cases, figures   (Windows: .\run.ps1)
 ```
 
 <p align="center">
@@ -99,7 +100,8 @@ cd code && bash run.sh      # build, 20 tests, 6 use cases, figures   (Windows: 
 |---|---|
 | Design charts (UC-05) | V_stall 15.1 m/s, best L/D at 20.8 m/s, V_max 36.9 m/s, service ceiling 5.9 km; elevator authority (not stall) sets the minimum trimmed speed |
 | Design scenarios SC-00…SC-03 (UC-06) | UF and FC agree to within 0.2–67 m with the same fuel; climbs are power-limited; least fuel at 22 m/s, next to best L/D |
-| Transcription check (UC-04) | analytic sparse Jacobian 54–529× faster than finite differences (O(N) against O(N²)), agreeing to 1e-10 |
+| Missions with NFZs and waypoints (UC-07) | Hybrid A\* plans around the zones in 0.01–1.5 s; UF and FC stay 11–16 m outside every margin and pass within 1.1 m of each waypoint, while the straight-line cold start runs 240–430 m into the zones |
+| Transcription check (UC-04) | analytic sparse Jacobian 57–487× faster than finite differences (O(N) against O(N²)), agreeing to 1e-10 |
 
 Walk-through with every output and figure: [Worked examples and design scenarios](docs/code/examples.md).
 

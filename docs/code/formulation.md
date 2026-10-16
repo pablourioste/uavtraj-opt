@@ -70,6 +70,7 @@ Only structurally nonzero entries of $A$ and $B$ are stored. The tests verify th
 | `bank`, `bank_rate` | $\mu^2/\phi_{max}^2-1$, $p_\mu^2/p_{max}^2-1$ (smooth two-sided bounds) |
 | `gamma_max`, `gamma_min` | flight-path-angle limits |
 | `cl_max`, `thrust_min` | $C_L/C_{L,max}-1$, $-T/T_{ref}$ |
+| `nfz:<id>` (one per zone) | $(m_j-d_j(x,y))/\max(m_j,25)$ if the node's altitude is inside the zone's band, otherwise $-1$; $d_j$ = signed distance to the polygon, $m_j$ = margin |
 
 ## Cost: Bolza form with a time–fuel dial
 
@@ -108,5 +109,26 @@ $$\gamma_{cmd}=\operatorname{sat}_{\gamma_{max}}\big(k_h(h_{cmd}-h)\big),\qquad 
   - Speed: thrust from the trim value plus climb and speed terms.
 
 The guidance is deliberately simple. Its purpose is to produce realistic, flyable reference trajectories for the design scenarios, not to be optimal.
+
+## Missions with no-fly zones: `src/model/environment.cpp`, `src/planning/planner.cpp`
+
+**No-fly zones.** A zone is a simple polygon in the horizontal plane, extruded between $h_{min}$ and $h_{max}$, with a margin $m$. Its signed distance $d(x,y)$ is the distance to the nearest edge: positive outside, negative inside (crossing-number test). A zone only counts for a flight whose altitude band overlaps $[h_{min},h_{max}]$, so a low zone can be overflown.
+
+**Dubins paths.** Between two poses $(x,y,\psi)$, the shortest forward path with turn radius $R$ is one of six words: LSL, LSR, RSL, RSR, RLR, LRL. Each word is computed in closed form, and the tests check that every word ends exactly at the goal pose.
+
+**Hybrid A\*.** The search runs over $(x,y,\psi)$ cells (20 m, 5°).
+
+- **Edges.** Five 30 m primitives with curvature $\{-1,-\tfrac12,0,\tfrac12,1\}/R$, so every path is flyable at the planning radius $R=V^2/(g\tan(0.8\,\mu_{max}))$. The 0.8 leaves bank for the guidance to correct errors.
+- **Cost.** Length, plus a small penalty for curvature and for changes of steering.
+- **Heuristic.** $\max(\text{Euclidean},\ \text{Dubins length})$. Both are admissible lower bounds, so the maximum is too.
+- **Collisions.** Points every 5 m must keep $d\ge m+$ safety from every active zone.
+- **Analytic expansion.** Every few expansions, and whenever the goal is within $4R$, a Dubins shot to the goal is tried. If it is collision-free it closes the search.
+- **Waypoints.** The mission is planned leg by leg. Each waypoint's heading points to the next target.
+
+**L1 path following.** The guidance finds the nearest point of the path, searching forward only so that loops are not skipped, and aims at a point $L_1=2.5\,V$ further along. With $\eta$ the angle between the course and the line to that point, the commanded lateral acceleration and bank are
+
+$$a_{cmd}=\frac{2V^2}{L_1}\sin\eta,\qquad \mu_{cmd}=\operatorname{sat}_{\mu_{max}}\big(\arctan(a_{cmd}/g)\big).$$
+
+The same command drives the UF model (through $p_\mu$) and the FC autopilot (through $\delta_a$). Altitude is handled by the guidance law of the previous section.
 
 [← Architecture](architecture.md) · [Next: Use cases →](use-cases.md)

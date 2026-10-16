@@ -17,6 +17,7 @@
 #include <nlohmann/json.hpp>
 
 #include "ofc/aircraft.hpp"
+#include "ofc/planner.hpp"
 #include "ofc/types.hpp"
 
 namespace ofc::scenario {
@@ -31,6 +32,13 @@ struct Scenario {
     double V = 0.0;            // commanded airspeed [m/s]; <= 0 means V_cruise
     double bankMax = 0.0;      // bank used in turns [rad]; <= 0 means 3/4 of phi_max
     double gammaMax = 0.0;     // flight-path angle used in climbs [rad]; <= 0 means 1/2 of gamma_max
+    double x0 = 0.0, y0 = 0.0; // start position, north / east [m]
+    double heading0 = 0.0;     // start heading [rad]
+
+    // Optional planned horizontal path. When set, lateral guidance follows it
+    // with the L1 law and the run ends at the end of the path; otherwise the
+    // heading-step law (turn / turnStart / distance) is used.
+    plan::Path path;
 
     static Scenario fromJson(const nlohmann::json& j, const Aircraft& ac);
 };
@@ -42,7 +50,7 @@ struct Run {
     Vec t;
     std::vector<Vec> x; // states of the model (uf::NX or fc::NX)
     std::vector<Vec> u; // controls applied on [t_k, t_k+1)
-    Vec s;              // along-track distance [m]
+    Vec s;              // along-track distance [m] (progress along the path when one is followed)
     double flightTime = 0.0, fuel = 0.0;
     bool completed = false; // reached the distance within the time budget
 };
