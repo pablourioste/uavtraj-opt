@@ -1,0 +1,1820 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+        <meta name="description" content="Minimum-time / minimum-fuel trajectory optimisation with a Hybrid A* warm start (BSc thesis, UPC – ESEIAAT)">
+      
+      
+      
+      
+        <link rel="prev" href="../architecture/">
+      
+      
+        <link rel="next" href="../use-cases/">
+      
+      
+        
+      
+      
+      <link rel="icon" href="../../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.7">
+    
+    
+      
+        <title>Formulation in code - Optimal 3D Trajectory Planning for a Fixed-Wing UAV</title>
+      
+    
+    
+      <link rel="stylesheet" href="../../assets/stylesheets/main.ec1eaa64.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+    <script>__md_scope=new URL("../..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+  </head>
+  
+  
+    <body dir="ltr">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#formulation-in-code" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+  
+
+<header class="md-header md-header--shadow" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href="../.." title="Optimal 3D Trajectory Planning for a Fixed-Wing UAV" class="md-header__button md-logo" aria-label="Optimal 3D Trajectory Planning for a Fixed-Wing UAV" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            Optimal 3D Trajectory Planning for a Fixed-Wing UAV
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              Formulation in code
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+      <div class="md-header__source">
+        <a href="https://github.com/pablourioste/uavtraj-opt" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"/></svg>
+  </div>
+  <div class="md-source__repository">
+    GitHub
+  </div>
+</a>
+      </div>
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+
+<nav class="md-nav md-nav--primary" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href="../.." title="Optimal 3D Trajectory Planning for a Fixed-Wing UAV" class="md-nav__button md-logo" aria-label="Optimal 3D Trajectory Planning for a Fixed-Wing UAV" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    Optimal 3D Trajectory Planning for a Fixed-Wing UAV
+  </label>
+  
+    <div class="md-nav__source">
+      <a href="https://github.com/pablourioste/uavtraj-opt" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"/></svg>
+  </div>
+  <div class="md-source__repository">
+    GitHub
+  </div>
+</a>
+    </div>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../.." class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Home
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2" >
+        
+          
+          <label class="md-nav__link" for="__nav_2" id="__nav_2_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Project
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_2_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_2">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Project
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../01-problem/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    1. Problem and requirements
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../02-state-of-the-art/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    2. State of the art
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../03-methodology/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    3. Methodology
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../04-design-decisions/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    4. Design decisions
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3" >
+        
+          
+          <label class="md-nav__link" for="__nav_3" id="__nav_3_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Theory
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Theory
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../05-ocp-theory/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    5. OCP and NLP
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../06-dynamics-uf/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    6. Point-mass dynamics (UF)
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../07-dynamics-fc/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    7. Rigid-body dynamics (FC)
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../08-transcription/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    8. Transcription
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../09-constraints/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    9. Constraints
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../10-cost-function/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    10. Cost function
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../11-warm-start/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    11. Warm start pipeline
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4" >
+        
+          
+          <label class="md-nav__link" for="__nav_4" id="__nav_4_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Results
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_4_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_4">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Results
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../12-results-validation/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    12. Validation
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../13-results-penalties/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    13. Regularisation
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../14-results-warmstart/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    14. Warm-start benchmark
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../derivatives/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Derivatives: v1 and v2
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../15-conclusions/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    15. Conclusions
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+    
+  
+  
+  
+    
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_5" checked>
+        
+          
+          <label class="md-nav__link" for="__nav_5" id="__nav_5_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Code (public edition)
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_5_label" aria-expanded="true">
+          <label class="md-nav__title" for="__nav_5">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Code (public edition)
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Overview and quick start
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../architecture/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Architecture
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+    
+  
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Formulation in code
+  
+
+    
+  </span>
+  
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Formulation in code
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#atmosphere-and-propulsion-srcmodelatmospherecpp-aircraftcpp" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Atmosphere and propulsion: src/model/atmosphere.cpp, aircraft.cpp
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#point-mass-uf-srcmodelpoint_masscpp" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Point mass (UF): src/model/point_mass.cpp
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#rigid-body-fc-srcmodelrigid_bodycpp" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Rigid body (FC): src/model/rigid_body.cpp
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#trapezoidal-collocation-srcformulationtranscriptioncpp" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Trapezoidal collocation: src/formulation/transcription.cpp
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#constraints" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Constraints
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#cost-bolza-form-with-a-timefuel-dial" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Cost: Bolza form with a time–fuel dial
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#initial-guesses" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Initial guesses
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#design-scenario-guidance-srcscenariosscenariocpp" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Design-scenario guidance: src/scenarios/scenario.cpp
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#missions-with-no-fly-zones-srcmodelenvironmentcpp-srcplanningplannercpp" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Missions with no-fly zones: src/model/environment.cpp, src/planning/planner.cpp
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../use-cases/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Use cases
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../examples/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Worked examples and design scenarios
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../aircraft-format/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Aircraft file format
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_6" >
+        
+          
+          <label class="md-nav__link" for="__nav_6" id="__nav_6_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Appendix
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_6_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_6">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Appendix
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../appendix-frames/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Coordinate frames
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../appendix-adjoint/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Adjoint method
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../appendix-msn012/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Aircraft MSN012
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../references/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    References
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#atmosphere-and-propulsion-srcmodelatmospherecpp-aircraftcpp" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Atmosphere and propulsion: src/model/atmosphere.cpp, aircraft.cpp
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#point-mass-uf-srcmodelpoint_masscpp" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Point mass (UF): src/model/point_mass.cpp
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#rigid-body-fc-srcmodelrigid_bodycpp" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Rigid body (FC): src/model/rigid_body.cpp
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#trapezoidal-collocation-srcformulationtranscriptioncpp" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Trapezoidal collocation: src/formulation/transcription.cpp
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#constraints" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Constraints
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#cost-bolza-form-with-a-timefuel-dial" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Cost: Bolza form with a time–fuel dial
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#initial-guesses" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Initial guesses
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#design-scenario-guidance-srcscenariosscenariocpp" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Design-scenario guidance: src/scenarios/scenario.cpp
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#missions-with-no-fly-zones-srcmodelenvironmentcpp-srcplanningplannercpp" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Missions with no-fly zones: src/model/environment.cpp, src/planning/planner.cpp
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+  
+  
+
+
+<h1 id="formulation-in-code">Formulation in code</h1>
+<p>The equations implemented in <code>code/</code>, with pointers to the source files. They are the generic counterparts of chapters <a href="../../06-dynamics-uf/">6</a>–<a href="../../10-cost-function/">10</a>. The state ordering and some modelling details differ on purpose from the production solver.</p>
+<h2 id="atmosphere-and-propulsion-srcmodelatmospherecpp-aircraftcpp">Atmosphere and propulsion: <code>src/model/atmosphere.cpp</code>, <code>aircraft.cpp</code></h2>
+<ul>
+<li><strong>Atmosphere.</strong> ISA troposphere: <span class="arithmatex">\(T=T_0-Lh\)</span>, <span class="arithmatex">\(p=p_0(T/T_0)^{g/RL}\)</span>, <span class="arithmatex">\(\rho=p/RT\)</span>.</li>
+<li><strong>Propulsion.</strong> A constant-power propeller. The shaft power lapses with altitude following Gagg–Ferrar, <span class="arithmatex">\(P_{max}(h)=P_{max,0}\,(1.132\,\sigma-0.132)\)</span>, and the available thrust is <span class="arithmatex">\(T_{max}=\eta_p P_{max}(h)/\max(V,V_{stall})\)</span>.</li>
+</ul>
+<h2 id="point-mass-uf-srcmodelpoint_masscpp">Point mass (UF): <code>src/model/point_mass.cpp</code></h2>
+<p>State and control:</p>
+<div class="arithmatex">\[x=[x_N,\,y_E,\,z_D,\,V,\,\gamma,\,\chi,\,\mu,\,m]^\top,\qquad u=[T,\,C_L,\,p_\mu]^\top\]</div>
+<div class="arithmatex">\[
+\begin{aligned}
+\dot x_N &amp;= V\cos\gamma\cos\chi + w_N, &amp;\dot y_E &amp;= V\cos\gamma\sin\chi + w_E, &amp;\dot z_D &amp;= -V\sin\gamma + w_D,\\
+\dot V &amp;= \frac{T-D}{m}-g\sin\gamma, &amp;\dot\gamma &amp;= \frac{L\cos\mu}{mV}-\frac{g\cos\gamma}{V}, &amp;\dot\chi &amp;= \frac{L\sin\mu}{mV\cos\gamma},\\
+\dot\mu &amp;= p_\mu, &amp;\dot m &amp;= -\frac{\mathrm{sfc}}{3.6\times10^6}\,\frac{TV}{\eta_p}
+\end{aligned}
+\]</div>
+<p>with <span class="arithmatex">\(L=\tfrac12\rho V^2 S C_L\)</span>, <span class="arithmatex">\(D=\tfrac12\rho V^2 S (C_{D0}+kC_L^2)\)</span> and ρ(h) from the ISA. The lift coefficient is a control (time-scale separation). <code>uf::jacobian</code> returns ∂f/∂x and ∂f/∂u in closed form. It includes dρ/dh through the altitude dependence, which a finite-difference Jacobian only captures approximately.</p>
+<h2 id="rigid-body-fc-srcmodelrigid_bodycpp">Rigid body (FC): <code>src/model/rigid_body.cpp</code></h2>
+<div class="arithmatex">\[x=[x_N,y_E,z_D,\,u,v,w,\,\phi,\theta,\psi,\,p,q,r,\,m]^\top,\qquad u=[T,\delta_e,\delta_a,\delta_r]^\top\]</div>
+<p>Evaluation order at each call:</p>
+<ol>
+<li>Compute <span class="arithmatex">\(R_{nb}(\phi,\theta,\psi)\)</span>, remove the NED wind in body axes, and get <span class="arithmatex">\(V_a\)</span>, <span class="arithmatex">\(\alpha=\operatorname{atan2}(w_r,u_r)\)</span>, <span class="arithmatex">\(\beta=\arcsin(v_r/V_a)\)</span>.</li>
+<li>Coefficients from linear stability derivatives with non-dimensional rates <span class="arithmatex">\(\hat p=pb/2V_a\)</span>, <span class="arithmatex">\(\hat q=q\bar c/2V_a\)</span>, <span class="arithmatex">\(\hat r=rb/2V_a\)</span>:
+   <span class="arithmatex">\(C_L=C_{L0}+C_{L\alpha}\alpha+C_{Lq}\hat q+C_{L\delta_e}\delta_e\)</span>, <span class="arithmatex">\(C_D=C_{D0}+kC_L^2\)</span>, and <span class="arithmatex">\(C_Y\)</span>, <span class="arithmatex">\(C_l\)</span>, <span class="arithmatex">\(C_m\)</span>, <span class="arithmatex">\(C_n\)</span> in the same way.</li>
+<li>Rotate the wind-axis forces <span class="arithmatex">\([-D,\,Y,\,-L]\)</span> to body axes, then add weight and thrust (along body x).</li>
+<li>Moments: aerodynamic, plus the thrust-line offset <span class="arithmatex">\((0,\;z_T T,\;0)\)</span>.</li>
+<li>Integrate:</li>
+<li><span class="arithmatex">\(\dot{\mathbf v}_b = \mathbf F/m - \boldsymbol\omega\times\mathbf v_b\)</span></li>
+<li><span class="arithmatex">\(I\dot{\boldsymbol\omega}=\mathbf M-\boldsymbol\omega\times I\boldsymbol\omega\)</span> (with <span class="arithmatex">\(I_{xz}\)</span>, solved in closed form)</li>
+<li>the Euler-angle kinematics and <span class="arithmatex">\(\dot{\mathbf r}_{NED}=R_{nb}\mathbf v_b\)</span>.</li>
+</ol>
+<h2 id="trapezoidal-collocation-srcformulationtranscriptioncpp">Trapezoidal collocation: <code>src/formulation/transcription.cpp</code></h2>
+<div class="arithmatex">\[\Delta_k=\operatorname{diag}(s_x)^{-1}\Big[x_{k+1}-x_k-\tfrac{\Delta t}{2}\big(f(x_k,u_k)+f(x_{k+1},u_{k+1})\big)\Big],\qquad \Delta t=\frac{t_f}{N-1}\]</div>
+<p>Jacobian blocks for interval k (row-scaled by <span class="arithmatex">\(s_x^{-1}\)</span>):</p>
+<table>
+<thead>
+<tr>
+<th>w.r.t.</th>
+<th>block</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><span class="arithmatex">\(x_k\)</span></td>
+<td><span class="arithmatex">\(-I-\tfrac{\Delta t}{2}A_k\)</span></td>
+</tr>
+<tr>
+<td><span class="arithmatex">\(x_{k+1}\)</span></td>
+<td><span class="arithmatex">\(I-\tfrac{\Delta t}{2}A_{k+1}\)</span></td>
+</tr>
+<tr>
+<td><span class="arithmatex">\(u_k,\;u_{k+1}\)</span></td>
+<td><span class="arithmatex">\(-\tfrac{\Delta t}{2}B_k,\;-\tfrac{\Delta t}{2}B_{k+1}\)</span></td>
+</tr>
+<tr>
+<td><span class="arithmatex">\(t_f\)</span></td>
+<td><span class="arithmatex">\(-\tfrac{1}{2(N-1)}\big(f_k+f_{k+1}\big)\)</span></td>
+</tr>
+</tbody>
+</table>
+<p>Only structurally nonzero entries of <span class="arithmatex">\(A\)</span> and <span class="arithmatex">\(B\)</span> are stored. The tests verify the whole Jacobian against central differences, and check that the defect of a smooth reference trajectory shrinks like <span class="arithmatex">\(\Delta t^3\)</span> (second-order global accuracy).</p>
+<h2 id="constraints">Constraints</h2>
+<p><strong>Boundary.</strong> The full initial state is fixed. At the end, position and heading are fixed.</p>
+<p><strong>Path</strong> (per node, <span class="arithmatex">\(h\le0\)</span>):</p>
+<table>
+<thead>
+<tr>
+<th>name</th>
+<th>expression</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>stall</code></td>
+<td><span class="arithmatex">\(1-V/V_{stall}(h,m)\)</span></td>
+</tr>
+<tr>
+<td><code>power</code></td>
+<td><span class="arithmatex">\(TV/(\eta_p P_{max}(h))-1\)</span></td>
+</tr>
+<tr>
+<td><code>v_ne</code></td>
+<td><span class="arithmatex">\(V/V_{NE}-1\)</span></td>
+</tr>
+<tr>
+<td><code>load_max</code>, <code>load_min</code></td>
+<td><span class="arithmatex">\(n/n_{max}-1\)</span>, <span class="arithmatex">\((n_{min}-n)/\max(1,\lvert n_{min}\rvert)\)</span></td>
+</tr>
+<tr>
+<td><code>altitude</code></td>
+<td><span class="arithmatex">\((h_{min}-h)/h_{min}\)</span></td>
+</tr>
+<tr>
+<td><code>bank</code>, <code>bank_rate</code></td>
+<td><span class="arithmatex">\(\mu^2/\phi_{max}^2-1\)</span>, <span class="arithmatex">\(p_\mu^2/p_{max}^2-1\)</span> (smooth two-sided bounds)</td>
+</tr>
+<tr>
+<td><code>gamma_max</code>, <code>gamma_min</code></td>
+<td>flight-path-angle limits</td>
+</tr>
+<tr>
+<td><code>cl_max</code>, <code>thrust_min</code></td>
+<td><span class="arithmatex">\(C_L/C_{L,max}-1\)</span>, <span class="arithmatex">\(-T/T_{ref}\)</span></td>
+</tr>
+<tr>
+<td><code>nfz:&lt;id&gt;</code> (one per zone)</td>
+<td><span class="arithmatex">\((m_j-d_j(x,y))/\max(m_j,25)\)</span> if the node's altitude is inside the zone's band, otherwise <span class="arithmatex">\(-1\)</span>; <span class="arithmatex">\(d_j\)</span> = signed distance to the polygon, <span class="arithmatex">\(m_j\)</span> = margin</td>
+</tr>
+</tbody>
+</table>
+<h2 id="cost-bolza-form-with-a-timefuel-dial">Cost: Bolza form with a time–fuel dial</h2>
+<div class="arithmatex">\[J=(1-\alpha)\frac{t_f}{t_{ref}}+\alpha\,\frac{\sum_k \bar T_k\bar V_k\,\Delta t}{E_{ref}}+\frac{\beta}{N-1}\sum_k\sum_j\Big(\frac{u_{j,k+1}-u_{j,k}}{s_{u_j}}\Big)^2\]</div>
+<ul>
+<li>α = 0 gives minimum time and α = 1 minimum propulsive energy (a fuel proxy).</li>
+<li>The β term penalises control increments, which suppresses node-to-node chatter.</li>
+</ul>
+<p><code>costGradient</code> is analytic, and the tests check it against finite differences.</p>
+<h2 id="initial-guesses">Initial guesses</h2>
+<ul>
+<li><code>coldStartGuess</code>: a straight line at constant speed with zero controls. This is the linear-interpolation guess against which the thesis benchmarks its warm start. Its defects are O(1).</li>
+<li>
+<p><code>trimmedLineGuess</code>: the same geometry, but each node carries the UF trim controls for the local flight-path angle, and the mass history is integrated consistently. Its defects are at machine precision.</p>
+</li>
+<li>
+<p><code>scenario::fly</code> (UC-06): a trajectory flown in closed loop by a guidance law, then resampled on the collocation nodes. It satisfies the dynamics up to the discretisation error of the mesh.</p>
+</li>
+</ul>
+<p>Neither straight-line guess bends around obstacles or meets a terminal heading that differs from the bearing. With a level start, the straight climbing line also violates the initial flight-path angle; UC-04 reports this as a nonzero boundary residual. Handling those cases is what the thesis's <a href="../../11-warm-start/">Hybrid A* → inverse-dynamics chain</a> does, and it is not part of this edition.</p>
+<h2 id="design-scenario-guidance-srcscenariosscenariocpp">Design-scenario guidance: <code>src/scenarios/scenario.cpp</code></h2>
+<p>Both models share one guidance law:</p>
+<div class="arithmatex">\[\gamma_{cmd}=\operatorname{sat}_{\gamma_{max}}\big(k_h(h_{cmd}-h)\big),\qquad \mu_{cmd}=\operatorname{sat}_{\mu_{max}}\big(k_\chi(\chi_{cmd}-\chi)\big)\]</div>
+<ul>
+<li><strong>UF (dynamic inversion).</strong> The point-mass equations are inverted for the controls:</li>
+<li><span class="arithmatex">\(C_L\)</span> from <span class="arithmatex">\(L\cos\mu=m(V\dot\gamma_{des}+g\cos\gamma)\)</span>, with <span class="arithmatex">\(\dot\gamma_{des}=k_\gamma(\gamma_{cmd}-\gamma)\)</span>;</li>
+<li><span class="arithmatex">\(T=D+mg\sin\gamma+mk_V(V_{cmd}-V)\)</span>;</li>
+<li><span class="arithmatex">\(p_\mu=k_\mu(\mu_{cmd}-\mu)\)</span>.</li>
+</ul>
+<p>Each control is clipped to <span class="arithmatex">\(C_{L,max}\)</span>, <span class="arithmatex">\(T_{max}\)</span> and <span class="arithmatex">\(p_{max}\)</span>.
+- <strong>FC (autopilot around the wings-level trim).</strong>
+  - Pitch: <span class="arithmatex">\(\theta_{cmd}=\alpha_{trim}+C_{L,trim}(n-1)/C_{L\alpha}+\gamma_{cmd}\)</span>, held with <span class="arithmatex">\(\delta_e=\delta_{e,trim}+k_\theta(\theta-\theta_{cmd})+k_q q\)</span>.
+  - Roll: <span class="arithmatex">\(\delta_a=k_\phi(\mu_{cmd}-\phi)-k_p p\)</span>.
+  - Turn coordination: <span class="arithmatex">\(\delta_r=-k_\beta\beta\)</span>.
+  - Speed: thrust from the trim value plus climb and speed terms.</p>
+<p>The guidance is deliberately simple. Its purpose is to produce realistic, flyable reference trajectories for the design scenarios, not to be optimal.</p>
+<h2 id="missions-with-no-fly-zones-srcmodelenvironmentcpp-srcplanningplannercpp">Missions with no-fly zones: <code>src/model/environment.cpp</code>, <code>src/planning/planner.cpp</code></h2>
+<p><strong>No-fly zones.</strong> A zone is a simple polygon in the horizontal plane, extruded between <span class="arithmatex">\(h_{min}\)</span> and <span class="arithmatex">\(h_{max}\)</span>, with a margin <span class="arithmatex">\(m\)</span>. Its signed distance <span class="arithmatex">\(d(x,y)\)</span> is the distance to the nearest edge: positive outside, negative inside (crossing-number test). A zone only counts for a flight whose altitude band overlaps <span class="arithmatex">\([h_{min},h_{max}]\)</span>, so a low zone can be overflown.</p>
+<p><strong>Dubins paths.</strong> Between two poses <span class="arithmatex">\((x,y,\psi)\)</span>, the shortest forward path with turn radius <span class="arithmatex">\(R\)</span> is one of six words: LSL, LSR, RSL, RSR, RLR, LRL. Each word is computed in closed form, and the tests check that every word ends exactly at the goal pose.</p>
+<p><strong>Hybrid A*.</strong> The search runs over <span class="arithmatex">\((x,y,\psi)\)</span> cells (20 m, 5°).</p>
+<ul>
+<li><strong>Edges.</strong> Five 30 m primitives with curvature <span class="arithmatex">\(\{-1,-\tfrac12,0,\tfrac12,1\}/R\)</span>, so every path is flyable at the planning radius <span class="arithmatex">\(R=V^2/(g\tan(0.8\,\mu_{max}))\)</span>. The 0.8 leaves bank for the guidance to correct errors.</li>
+<li><strong>Cost.</strong> Length, plus a small penalty for curvature and for changes of steering.</li>
+<li><strong>Heuristic.</strong> <span class="arithmatex">\(\max(\text{Euclidean},\ \text{Dubins length})\)</span>. Both are admissible lower bounds, so the maximum is too.</li>
+<li><strong>Collisions.</strong> Points every 5 m must keep <span class="arithmatex">\(d\ge m+\)</span> safety from every active zone.</li>
+<li><strong>Analytic expansion.</strong> Every few expansions, and whenever the goal is within <span class="arithmatex">\(4R\)</span>, a Dubins shot to the goal is tried. If it is collision-free it closes the search.</li>
+<li><strong>Waypoints.</strong> The mission is planned leg by leg. Each waypoint's heading points to the next target.</li>
+</ul>
+<p><strong>L1 path following.</strong> The guidance finds the nearest point of the path, searching forward only so that loops are not skipped, and aims at a point <span class="arithmatex">\(L_1=2.5\,V\)</span> further along. With <span class="arithmatex">\(\eta\)</span> the angle between the course and the line to that point, the commanded lateral acceleration and bank are</p>
+<div class="arithmatex">\[a_{cmd}=\frac{2V^2}{L_1}\sin\eta,\qquad \mu_{cmd}=\operatorname{sat}_{\mu_{max}}\big(\arctan(a_{cmd}/g)\big).\]</div>
+<p>The same command drives the UF model (through <span class="arithmatex">\(p_\mu\)</span>) and the FC autopilot (through <span class="arithmatex">\(\delta_a\)</span>). Altitude is handled by the guidance law of the previous section.</p>
+<p><a href="../architecture/">← Architecture</a> · <a href="../use-cases/">Next: Use cases →</a></p>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+    
+      
+      <nav class="md-footer__inner md-grid" aria-label="Footer" >
+        
+          
+          <a href="../architecture/" class="md-footer__link md-footer__link--prev" aria-label="Previous: Architecture">
+            <div class="md-footer__button md-icon">
+              
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+            </div>
+            <div class="md-footer__title">
+              <span class="md-footer__direction">
+                Previous
+              </span>
+              <div class="md-ellipsis">
+                Architecture
+              </div>
+            </div>
+          </a>
+        
+        
+          
+          <a href="../use-cases/" class="md-footer__link md-footer__link--next" aria-label="Next: Use cases">
+            <div class="md-footer__title">
+              <span class="md-footer__direction">
+                Next
+              </span>
+              <div class="md-ellipsis">
+                Use cases
+              </div>
+            </div>
+            <div class="md-footer__button md-icon">
+              
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M4 11v2h12l-5.5 5.5 1.42 1.42L19.84 12l-7.92-7.92L10.5 5.5 16 11z"/></svg>
+            </div>
+          </a>
+        
+      </nav>
+    
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      
+      <script id="__config" type="application/json">{"annotate": null, "base": "../..", "features": ["navigation.sections", "navigation.footer", "content.code.copy"], "search": "../../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+    
+    
+      <script src="../../assets/javascripts/bundle.d7400e89.min.js"></script>
+      
+        <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+      
+    
+  </body>
+</html>
