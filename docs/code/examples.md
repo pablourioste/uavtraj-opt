@@ -7,7 +7,7 @@
     - The four typical scenarios (straight and level, climb, 180° turn, climb plus turn) are flown by both models. UF and FC agree to within 0.2–67 m, with the same fuel to 0.1 g.
     - The climbs are power-limited, and the least-fuel speed (22 m/s) sits next to the best-L/D speed.
     - The analytic Jacobian is 57–487× faster than forward differences, and the gap grows with N.
-    - In four missions with no-fly zones and waypoints, Hybrid A\* finds a flyable path in 0.01–1.5 s. UF and FC fly it while staying 11–16 m outside every margin and passing within 1.1 m of each waypoint. The straight-line cold start runs deep into the zones.
+    - In four missions with no-fly zones and waypoints, Hybrid A\* finds a flyable path in 0.01–2 s (machine-dependent). UF and FC fly it while staying 11–16 m outside every margin and passing within 1.1 m of each waypoint. The straight-line cold start runs deep into the zones.
 
 All numbers on this page come from `bash run.sh` in `code/`, using the case files in `code/data/cases/`. The figures are produced by `utils/plot_results.py`. Timings depend on the machine; the trends do not.
 
@@ -205,7 +205,7 @@ M-04    NFZ, waypoint, climb; low NFZ  |   1019    143   3921 |  159.3  157.8 | 
 How to read the results:
 
 - **The cold start would be infeasible.** The straight line between the same end points gives NFZ rows of +6 to +11 in the NLP. With a 40 m margin that means 240–430 m inside the zones. The planned and flown trajectories give −0.3 to −0.4, so they are outside every margin. This is the same reason the thesis's cold start failed in its NFZ and waypoint scenarios.
-- **The planner is cheap, and the guidance holds the path.** Planning takes 0.01–1.5 s. UF and FC end with the same clearance to the metre, and it stays above the planner's safety distance, so the 0.8 bank fraction leaves enough room to track the path.
+- **The planner is cheap, and the guidance holds the path.** Planning takes 0.01–2 s, depending on the machine. UF and FC end with the same clearance to the metre, and it stays above the planner's safety distance, so the 0.8 bank fraction leaves enough room to track the path.
 - **Mesh resolution.** The flown trajectories satisfy the collocation equations to 0.14–0.55 on 80 nodes, and to 0.004–0.014 on 320 nodes. As in UC-06, the mesh must resolve the turns.
 - **What is still missing for an optimum.** A trajectory like this is the warm start that the thesis then hands to the UF and FC optimisation stages. That stage, the optimiser, is not part of the public edition.
 
