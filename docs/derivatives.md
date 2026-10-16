@@ -1,7 +1,7 @@
 # Derivatives: finite differences (v1) and exact derivatives (v2)
 
 !!! abstract "TL;DR"
-    Every number in the Results chapters comes from **v1** of the solver, which built the constraint Jacobian and the cost gradient by **forward finite differences**. A later version (**v2**) computes them exactly with CasADi's algorithmic differentiation, and is substantially faster. The public code reproduces the mechanism: on the generic aircraft, an analytic sparse Jacobian is 54–529× cheaper to build than a finite-difference one, and the gap grows with the number of nodes.
+    Every number in the Results chapters comes from **v1** of the solver, which built the constraint Jacobian and the cost gradient by **forward finite differences**. A later version (**v2**) computes them exactly by automatic differentiation. Preliminary measurements reported in the thesis conclusions show the point-mass (UF) stage about **3× faster**. The public code reproduces the mechanism: on the generic aircraft, an analytic sparse Jacobian is 54–529× cheaper to build than a finite-difference one, and the gap grows with the number of nodes.
 
 ## Why it matters for an interior-point solver
 
@@ -18,7 +18,7 @@ The noise floor of v1 is one of the two reasons the smoothness regularisation wa
 ## What the published results therefore mean
 
 - The **relative** conclusions hold for both versions: the warm start's robustness (8/8 against 5/8 convergence) and the advantage of the intermediate UF stage. They come from the quality of the initial guess, not from how the derivatives are computed.
-- The **absolute** times (FC 4.5–12.9 s) are v1 times. They overstate what v2 needs. The end-to-end v2 timings are not part of this benchmark, so the < 4 s real-time target for FC is still unverified.
+- The **absolute** times (FC 4.5–12.9 s) are v1 times. They overstate what v2 needs. The first v2 measurements give about 3× on the UF stage; the full benchmark has not been repeated with v2, so the < 4 s real-time target for FC is still unverified.
 
 ## The mechanism, reproduced with the public code
 
@@ -36,6 +36,6 @@ Use case UC-04 of the [public code](code/index.md) builds the trapezoidal-colloc
   <figcaption>Left: Jacobian cost against the number of nodes. Finite differences grow quadratically, the sparse analytic Jacobian linearly. Right: seed quality (see Worked examples in the Code section).</figcaption>
 </figure>
 
-These are the costs of the Jacobian alone on a small model; the full-solver speed-up of v2 is smaller, because the factorisation of the KKT matrix and the function evaluations stay the same. The direction and the scaling are the point.
+These are the costs of the Jacobian alone on a small model. The full-solver speed-up of v2 is smaller (about 3× on the UF stage in the first measurements), because the factorisation of the KKT matrix and the function evaluations stay the same. The direction and the scaling are the point.
 
 [← Warm-start benchmark](14-results-warmstart.md) · [Next: Conclusions →](15-conclusions.md)

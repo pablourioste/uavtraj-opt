@@ -24,7 +24,7 @@ An end-to-end pipeline for 3D minimum-time and minimum-fuel trajectory planning 
 
 ## Limitations
 
-- **Real-time target met only by UF in these numbers.** FC takes 4.5–12.9 s with a warm start using the v1 solver. Exact derivatives (now implemented) and a C++ core are the routes to close the gap, but end-to-end v2 timings are not part of this benchmark.
+- **Real-time target met only by UF in these numbers.** FC takes 4.5–12.9 s with a warm start using the v1 solver. Exact derivatives are now implemented, and the first measurements show the UF stage about 3× faster, but the full benchmark has not been repeated with them.
 - Open-loop trajectories only; no disturbance rejection.
 - Deterministic wind only; single aircraft.
 - Aerodynamic model limited to one airframe.
@@ -33,7 +33,7 @@ An end-to-end pipeline for 3D minimum-time and minimum-fuel trajectory planning 
 
 ## Future work
 
-1. Re-run the benchmark with the exact-derivative version (and later the C++ core) to verify the < 4 s target for FC.
+1. Re-run the full benchmark with the exact-derivative version, to verify the < 4 s target for FC and how the gain propagates through the warm-start and FC stages.
 2. Closed-loop integration with an MPC layer that uses the offline trajectory as its reference.
 3. Stochastic wind and chance-constrained NFZ/altitude constraints.
 4. Multi-aircraft coordination with shared airspace.

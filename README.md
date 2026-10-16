@@ -48,7 +48,7 @@ flowchart LR
 | `WS→FC` in scenario 7 | Times out (> 60 s); `WS→UF→FC` solves it in ≈ 11.9 s |
 | Cost of the warm start | Hybrid A\* 40–220 ms + inverse dynamics 2–25 ms |
 
-All timings come from the **v1 solver, which built its Jacobians by finite differences**. A later version uses exact derivatives from CasADi and is faster; see [Derivatives: v1 and v2](docs/derivatives.md).
+All timings come from the **v1 solver, which built its Jacobians by finite differences**. A later version uses exact derivatives (automatic differentiation); preliminary measurements show the point-mass stage about 3× faster. See [Derivatives: v1 and v2](docs/derivatives.md).
 
 **Honest limitations.** In these numbers the 6-DoF (FC) stage takes 4.5 – 12.9 s even with a warm start, so it does **not** meet the < 4 s real-time goal; only the point-mass (UF) layer does. For the point-mass stage the warm start is not always faster in the easy empty-airspace cases (it was faster in 3/5 min-fuel and 1/5 min-time cases); its real value is **robustness**. See [Conclusions](docs/15-conclusions.md).
 
@@ -73,7 +73,7 @@ All timings come from the **v1 solver, which built its Jacobians by finite diffe
 - For easy empty-airspace cases the warm start does not always save time on the point-mass stage; its value there is robustness, not speed.
 - Open-loop planning only, deterministic wind, one aircraft model, 8 scenarios with 2 repetitions on one machine, local optima only.
 
-**Next steps:** benchmark the exact-derivative version (and then a C++ core) against the < 4 s target for the 6-DoF stage, closed-loop MPC around the offline trajectory, stochastic wind with chance constraints.
+**Next steps:** re-run the benchmark with the exact-derivative version against the < 4 s target for the 6-DoF stage, closed-loop MPC around the offline trajectory, stochastic wind with chance constraints.
 
 Details: [Conclusions](docs/15-conclusions.md) · [Benchmark](docs/14-results-warmstart.md).
 
@@ -127,7 +127,7 @@ Browse locally with `pip install mkdocs-material && mkdocs serve`.
 
 ## Tech stack
 
-Thesis solver: Python · CasADi · IPOPT (MA57 / MUMPS) · Linux. A C++17 production port is in development and was not used for the published numbers.
+Thesis solver: Python · CasADi · IPOPT (MA57 / MUMPS) · C++17 (production port) · Linux.
 Public edition: C++17 · CMake · nlohmann/json · Python + Matplotlib for the figures. Documentation: MkDocs.
 
 ## About the code
