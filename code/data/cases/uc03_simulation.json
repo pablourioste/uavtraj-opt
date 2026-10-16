@@ -1,0 +1,10 @@
+{
+  "use_case": "UC-03",
+  "aircraft": "data/aircraft/generic_uav.json",
+  "flight": { "V_mps": 25.0, "h_m": 300.0 },
+  "duration_s": 60.0,
+  "dt_s": 0.01,
+  "uf": { "bank_cmd_deg": 30.0, "bank_gain": 1.0 },
+  "fc": { "elevator_doublet_deg": 2.0, "doublet_start_s": 2.0, "doublet_width_s": 0.5 },
+  "output": "output/uc03"
+}

@@ -1,0 +1,5 @@
+{
+  "use_case": "UC-01",
+  "aircraft": "data/aircraft/generic_uav.json",
+  "altitudes_m": [0, 500, 1000, 2000, 4000]
+}

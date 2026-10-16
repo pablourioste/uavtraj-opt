@@ -1,0 +1,14 @@
+{
+  "use_case": "UC-04",
+  "aircraft": "data/aircraft/generic_uav.json",
+  "mission": {
+    "start_ned_m": [0.0, 0.0, -300.0],
+    "end_ned_m": [3000.0, 800.0, -400.0],
+    "speed_mps": 25.0,
+    "wind_ned_mps": [0.0, 0.0, 0.0],
+    "alpha": 1.0,
+    "beta_control": 0.01
+  },
+  "N": [25, 50, 100, 200],
+  "output": "output/uc04"
+}

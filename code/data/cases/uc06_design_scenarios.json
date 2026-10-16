@@ -1,0 +1,17 @@
+{
+  "use_case": "UC-06",
+  "aircraft": "data/aircraft/generic_uav.json",
+  "nodes": 60,
+  "speed_sweep_mps": [18, 20, 22, 24, 26, 28, 30, 32, 34, 36],
+  "scenarios": [
+    { "id": "SC-00", "title": "Straight, level",
+      "h0_m": 300, "climb_m": 0,   "turn_deg": 0,   "distance_m": 3000 },
+    { "id": "SC-01", "title": "Straight, climb +200 m",
+      "h0_m": 300, "climb_m": 200, "turn_deg": 0,   "distance_m": 3000 },
+    { "id": "SC-02", "title": "180 deg turn, level",
+      "h0_m": 300, "climb_m": 0,   "turn_deg": 180, "turn_start_m": 800, "distance_m": 2500 },
+    { "id": "SC-03", "title": "Climb +200 m and 180 deg turn",
+      "h0_m": 300, "climb_m": 200, "turn_deg": 180, "turn_start_m": 800, "distance_m": 2500 }
+  ],
+  "output": "output/uc06"
+}

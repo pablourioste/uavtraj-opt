@@ -28,6 +28,12 @@ __pycache__/
 # MkDocs
 site/
 
+# C++ build and run outputs (figures for the docs are copied to docs/assets/figures/code/)
+code/build/
+code/output/
+.vscode/
+.idea/
+
 # Never publish
 Extras/
 Hybrid_A-Star_*.pdf

@@ -1,0 +1,32 @@
+{
+  "name": "generic_uav",
+  "source": "Mass, geometry, inertia, lift, side-force and moment derivatives: Aerosonde-class UAV as published in R. W. Beard & T. W. McLain, Small Unmanned Aircraft: Theory and Practice (Princeton University Press, 2012). Drag polar, propulsion and envelope limits are illustrative values chosen for this example.",
+
+  "mass":       { "m0_kg": 11.0, "m_empty_kg": 8.5, "fuel_max_kg": 2.5 },
+  "geometry":   { "S_m2": 0.55, "b_m": 2.8956, "c_mac_m": 0.18994 },
+  "inertia":    { "Ixx": 0.8244, "Iyy": 1.135, "Izz": 1.759, "Ixz": 0.1204 },
+  "propulsion": { "P_max_W": 800.0, "eta_p": 0.70, "sfc_kg_per_kWh": 0.60, "thrust_z_offset_m": 0.0 },
+
+  "envelope": {
+    "V_ne": 40.0, "V_cruise": 25.0, "h_min_m": 50.0,
+    "n_min": -1.5, "n_max": 3.8,
+    "phi_max_deg": 40.0,
+    "theta_min_deg": -20.0, "theta_max_deg": 25.0,
+    "gamma_min_deg": -15.0, "gamma_max_deg": 15.0,
+    "alpha_min_deg": -5.0, "alpha_max_deg": 12.0
+  },
+
+  "actuators": {
+    "de_max_deg": 25.0, "da_max_deg": 25.0, "dr_max_deg": 25.0,
+    "p_max_dps": 120.0, "q_max_dps": 60.0, "r_max_dps": 60.0
+  },
+
+  "aero": {
+    "lift":  { "CL0": 0.23, "CLa": 5.61, "CLq": 7.95, "CLde": 0.13 },
+    "drag":  { "CD0": 0.030, "k": 0.055 },
+    "side":  { "CY0": 0.0, "CYb": -0.98, "CYp": 0.0, "CYr": 0.0, "CYda": 0.075, "CYdr": 0.19 },
+    "roll":  { "Cl0": 0.0, "Clb": -0.13, "Clp": -0.51, "Clr": 0.25, "Clda": 0.17, "Cldr": 0.0024 },
+    "pitch": { "Cm0": 0.0135, "Cma": -2.74, "Cmq": -38.21, "Cmde": -0.99 },
+    "yaw":   { "Cn0": 0.0, "Cnb": 0.073, "Cnp": -0.069, "Cnr": -0.095, "Cnda": -0.011, "Cndr": -0.069 }
+  }
+}

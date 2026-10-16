@@ -1,0 +1,8 @@
+{
+  "use_case": "UC-05",
+  "aircraft": "data/aircraft/generic_uav.json",
+  "altitudes_m": [0, 1000, 2000, 4000],
+  "trim_altitude_m": 300,
+  "turn_speeds_mps": [18, 25, 32],
+  "output": "output/uc05"
+}

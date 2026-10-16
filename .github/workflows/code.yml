@@ -1,0 +1,40 @@
+name: code
+on:
+  push:
+    branches: [main]
+    paths: ["code/**", ".github/workflows/code.yml"]
+  pull_request:
+    paths: ["code/**", ".github/workflows/code.yml"]
+jobs:
+  format:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: code
+    steps:
+      - uses: actions/checkout@v4
+      - name: Check formatting (clang-format 18, style in code/.clang-format)
+        run: |
+          pip install --quiet clang-format==18.1.8
+          clang-format --dry-run --Werror --style=file include/ofc/*.hpp src/*.cpp src/*/*.cpp tests/*.cpp tests/*.hpp
+  build-test:
+    strategy:
+      matrix:
+        os: [ubuntu-latest, windows-latest]
+    runs-on: ${{ matrix.os }}
+    defaults:
+      run:
+        working-directory: code
+    steps:
+      - uses: actions/checkout@v4
+      - name: Configure
+        run: cmake -S . -B build -DCMAKE_BUILD_TYPE=Release
+      - name: Build
+        run: cmake --build build --config Release
+      - name: Test
+        run: ctest --test-dir build --output-on-failure -C Release
+      - name: Run all use cases
+        shell: bash
+        run: |
+          exe=build/ofc; [ -f build/Release/ofc.exe ] && exe=build/Release/ofc.exe
+          "$exe" data/cases/uc0*.json

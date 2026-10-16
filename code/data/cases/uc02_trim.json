@@ -1,0 +1,5 @@
+{
+  "use_case": "UC-02",
+  "aircraft": "data/aircraft/generic_uav.json",
+  "flight": { "V_mps": 25.0, "h_m": 300.0, "gamma_deg": 0.0, "mu_deg": 0.0 }
+}

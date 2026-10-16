@@ -1,0 +1,22 @@
+---
+# Code style of code/ (clang-format 18). Run from code/:
+#   clang-format -i include/ofc/*.hpp src/*.cpp src/*/*.cpp tests/*.cpp tests/*.hpp
+BasedOnStyle: LLVM
+Language: Cpp
+Standard: c++17
+IndentWidth: 4
+ColumnLimit: 120
+AccessModifierOffset: -4
+PointerAlignment: Left
+NamespaceIndentation: None
+FixNamespaceComments: true
+AllowShortFunctionsOnASingleLine: All
+AllowShortIfStatementsOnASingleLine: WithoutElse
+AllowShortLoopsOnASingleLine: true
+AllowShortLambdasOnASingleLine: All
+AlignConsecutiveMacros: Consecutive
+AlignEscapedNewlines: Left
+IncludeBlocks: Preserve
+SortIncludes: CaseSensitive
+SpacesBeforeTrailingComments: 1
+...
