@@ -21,6 +21,10 @@ Two independent comparisons:
 
 A run counts as feasible only if the **final** stage returns `Solve_Succeeded` / `Solved_To_Acceptable_Level`, produces a trajectory, and stays within the wall-clock budget (40 s).
 
+!!! note "Timing conventions"
+    - Times are **end to end**. For `WS→UF→FC` they include Hybrid A\*, inverse dynamics, the UF solve and the FC solve. For `WS→FC` they include Hybrid A\*, inverse dynamics and the FC solve. The comparison is therefore like for like.
+    - All runs use the **v1** solver, with finite-difference Jacobians (see [Derivatives: v1 and v2](derivatives.md)). The absolute times overstate what the later exact-derivative version needs; the relative comparisons are what this page is about.
+
 ## UF: robustness, not always speed
 
 | | min-fuel | min-time |
@@ -31,6 +35,11 @@ A run counts as feasible only if the **final** stage returns `Solve_Succeeded` /
 | WS faster than No-WS (converged pairs) | 3/5 | 1/5 |
 
 WS UF times are 0.5–3.0 s, within the 4 s target. In easy empty-airspace cases the warm start can be slightly *slower* in total, because the Hybrid A\* and inverse-dynamics time (40–220 ms and 2–25 ms) is added; the benefit shows where the cold start struggles: it fails outright in scenarios 5–7.
+
+The warm start also changes **which** optimum the solver finds, not only how fast it gets there:
+
+- In scenarios 5–7 the cold-start runs end with exactly 4000.0 kg, the initial mass. They burned no fuel, so they are not physical trajectories, only the point where the solver stopped.
+- In scenario 8, where both converge, the warm-started UF reaches a better local optimum. In minimum time it flies 101.5 s against 109.5 s. In minimum fuel it ends with 3998.38 kg against 3998.26 kg, which is 0.12 kg less fuel.
 
 ## FC: the intermediate UF stage pays off
 
@@ -49,6 +58,12 @@ WS UF times are 0.5–3.0 s, within the 4 s target. In easy empty-airspace cases
 - Scenario 8 (NFZ + waypoints): **4.4×** (min-fuel) and **3.8×** (min-time); 111–118 iterations for the direct seed against 79–82 with the full chain.
 - Scenario 7: only the full chain converges.
 - The two pipelines end at nearly the same solution: trajectory deviation 3.3–4.5 %, end mass differences ≤ 0.1 kg.
+
+<figure markdown>
+  ![FC pipeline time min-fuel](assets/figures/benchmark/time_fc_min_fuel.png){ width="48%" }
+  ![FC pipeline time min-time](assets/figures/benchmark/time_fc_min_time.png){ width="48%" }
+  <figcaption>End-to-end FC pipeline time per scenario (scenario 6 omitted from the plot). The scenario 7 bar for <code>WS→FC</code> is the 60 s timeout, not a solution.</figcaption>
+</figure>
 
 <figure markdown>
   ![FC speed-up min-fuel](assets/figures/benchmark/speedup_min_fuel.png){ width="48%" }
@@ -73,6 +88,6 @@ WS UF times are 0.5–3.0 s, within the 4 s target. In easy empty-airspace cases
 - Without warm start, scenario 5–7 UF trajectories also deviate 50–100 % from the warm-start ones, i.e. the cold solver was not finding the same optimum.
 - Only 8 scenarios, 2 repetitions each, one machine. These results show the mechanism, not a statistical guarantee.
 
-Raw aggregated table: [`results/benchmark_summary.csv`](https://github.com/pablourioste/uavtraj-opt/blob/main/results/benchmark_summary.csv).
+Raw aggregated table: [`results/benchmark_summary.csv`](https://github.com/pablourioste/uavtraj-opt/blob/main/results/benchmark_summary.csv). Its columns are explained in [`results/README.md`](https://github.com/pablourioste/uavtraj-opt/blob/main/results/README.md).
 
-[← Previous](13-results-penalties.md) · [Next: Conclusions →](15-conclusions.md)
+[← Previous](13-results-penalties.md) · [Next: Derivatives →](derivatives.md)

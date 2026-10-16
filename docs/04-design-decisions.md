@@ -8,7 +8,7 @@
 | Path planner / warm start | Hybrid A\* + inverse dynamics | Deterministic, obstacle-aware, kinematically feasible seed; robust over the whole mission set |
 | Optimisation method | Direct trapezoidal collocation + IPOPT | Sparse NLP, friendly to warm starts and to imperfect guesses; standard for 6-DoF aerospace problems |
 | Dynamic model | UF → FC hierarchy | Fast, well-conditioned UF; FC adds fidelity and inherits a near-feasible iterate |
-| Cost function | Bolza form (time + fuel + regularisation) | Smooth Pareto sweep; regularisation absorbs numerical noise without biasing the optimum |
+| Cost function | Bolza form (time + fuel + regularisation) | Smooth Pareto sweep; regularisation removes control chatter, at a measurable cost in optimality for the 6-DoF model ([13](13-results-penalties.md)) |
 
 ## Alternatives considered and left out
 

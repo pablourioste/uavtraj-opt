@@ -13,7 +13,7 @@
 > Minimum-time / minimum-fuel 3D trajectory optimisation for a fixed-wing UAV, accelerated by a Hybrid A\* warm start.
 
 > [!IMPORTANT]
-> **Why the full solver code is not in this repository.** This work was designed exclusively as a product for [Singular Aircraft](https://singularaircraft.com/inicio). For privacy and confidentiality reasons towards the company, the complete software repository cannot be shared. What **can** be shared is the knowledge behind it: the research, the mathematical methods (formulations, constraints, cost functions, warm-start strategy) and how they are applied in code (pseudocode, diagrams, results). That is what this repository contains.
+> **Why the full solver code is not in this repository.** This work was designed exclusively as a product for [Singular Aircraft](https://singularaircraft.com/inicio). For privacy and confidentiality reasons towards the company, the complete software repository cannot be shared. What **can** be shared is the knowledge behind it: the research, the mathematical methods (formulations, constraints, cost functions, warm-start strategy) and how they are applied in code. That is what this repository contains, plus a **restricted, clean-room public edition of the code** in [`code/`](code/). It was rewritten from the thesis equations, uses a generic aircraft, and leaves out the optimiser and the mission features.
 
 📄 **Full thesis (PDF):** [`thesis/Optimal_3D_Trajectory_Planning_Thesis_Urioste.pdf`](thesis/Optimal_3D_Trajectory_Planning_Thesis_Urioste.pdf)
 
@@ -48,7 +48,9 @@ flowchart LR
 | `WS→FC` in scenario 7 | Times out (> 60 s); `WS→UF→FC` solves it in ≈ 11.9 s |
 | Cost of the warm start | Hybrid A\* 40–220 ms + inverse dynamics 2–25 ms |
 
-**Honest limitations.** The 6-DoF (FC) stage takes 4.5 – 12.9 s even with a warm start, so it does **not** meet the < 4 s real-time goal; only the point-mass (UF) layer does. For the point-mass stage the warm start is not always faster in the easy empty-airspace cases (it was faster in 3/5 min-fuel and 1/5 min-time cases); its real value is **robustness**. See [Conclusions](docs/15-conclusions.md).
+All timings come from the **v1 solver, which built its Jacobians by finite differences**. A later version uses exact derivatives from CasADi and is faster; see [Derivatives: v1 and v2](docs/derivatives.md).
+
+**Honest limitations.** In these numbers the 6-DoF (FC) stage takes 4.5 – 12.9 s even with a warm start, so it does **not** meet the < 4 s real-time goal; only the point-mass (UF) layer does. For the point-mass stage the warm start is not always faster in the easy empty-airspace cases (it was faster in 3/5 min-fuel and 1/5 min-time cases); its real value is **robustness**. See [Conclusions](docs/15-conclusions.md).
 
 <p align="center">
   <img src="docs/assets/figures/benchmark/speedup_min_fuel.png" width="48%" alt="FC speed-up, min-fuel">
@@ -62,18 +64,44 @@ flowchart LR
 1. **A cold start is not viable for constrained missions.** The point-mass solver fails in 3 of 8 scenarios (those with no-fly zones or waypoints) when started from a straight-line guess.
 2. **The hierarchical warm start makes the solver robust.** The chain Hybrid A\* → inverse dynamics → UF → FC converged in all 8 scenarios, for both objectives. One scenario (waypoints only) was solved only with the full chain.
 3. **It also makes the 6-DoF stage faster.** Against seeding FC directly, it was faster in every scenario where both converged: 1.2× to 4.4× for the 6-DoF stage, with a mean saving of 8.7–11.9 s. The warm-start cost is small (about 40–220 ms for Hybrid A\* and 2–25 ms for inverse dynamics).
-4. **Both pipelines reach nearly the same optimum** (3.3–4.5 % trajectory deviation, end-mass differences ≤ 0.1 kg), so the speed-up does not come from a worse solution.
+4. **Both pipelines reach nearly the same optimum** (3.3–4.5 % trajectory deviation, end-mass differences ≤ 0.1 kg), so the speed-up does not come from a worse solution. In scenario 8 the warm-started point-mass solve even finds a better optimum (101.5 s against 109.5 s in minimum time).
 5. **Smoothness regularisation makes controls flyable, at a price.** It suppresses control chatter in both models, but for the 6-DoF model it moves the optimum noticeably (SC-01 min-fuel: without regularisation the flight is 21 % longer and uses 14 % less energy), whereas the point-mass model changes by only a few percent.
 
 **What it does not show (yet)**
 
-- **Real-time target:** only the point-mass layer (0.5–3.0 s) meets the < 4 s goal; the 6-DoF stage takes 4.5–12.9 s even with a warm start.
+- **Real-time target:** with the v1 solver only the point-mass layer (0.5–3.0 s) meets the < 4 s goal; the 6-DoF stage takes 4.5–12.9 s even with a warm start. End-to-end timings of the exact-derivative version are not part of this benchmark.
 - For easy empty-airspace cases the warm start does not always save time on the point-mass stage; its value there is robustness, not speed.
 - Open-loop planning only, deterministic wind, one aircraft model, 8 scenarios with 2 repetitions on one machine, local optima only.
 
-**Next steps:** analytical Jacobians and a C++ core to bring the 6-DoF stage under 4 s, closed-loop MPC around the offline trajectory, stochastic wind with chance constraints.
+**Next steps:** benchmark the exact-derivative version (and then a C++ core) against the < 4 s target for the 6-DoF stage, closed-loop MPC around the offline trajectory, stochastic wind with chance constraints.
 
 Details: [Conclusions](docs/15-conclusions.md) · [Benchmark](docs/14-results-warmstart.md).
+
+## Code: public edition
+
+[`code/`](code/) is a C++17 implementation of the **formulation block** with no external dependencies:
+
+- a generic aircraft defined in JSON (design parameters and aerodynamic coefficients);
+- the point-mass (UF) and 6-DoF (FC) models;
+- trapezoidal collocation with a sparse analytic Jacobian, envelope and boundary constraints, and the time–fuel cost;
+- trim, simulation, and the aircraft's design charts;
+- the four typical design scenarios flown by both models.
+
+```bash
+cd code && bash run.sh      # build, 20 tests, 6 use cases, figures   (Windows: .\run.ps1)
+```
+
+<p align="center">
+  <img src="docs/assets/figures/code/uc06_scenarios_3d.png" width="95%" alt="Typical design scenarios flown by the point-mass and 6-DoF models">
+</p>
+
+| Example | Result with the generic UAV |
+|---|---|
+| Design charts (UC-05) | V_stall 15.1 m/s, best L/D at 20.8 m/s, V_max 36.9 m/s, service ceiling 5.9 km; elevator authority (not stall) sets the minimum trimmed speed |
+| Design scenarios SC-00…SC-03 (UC-06) | UF and FC agree to within 0.2–67 m with the same fuel; climbs are power-limited; least fuel at 22 m/s, next to best L/D |
+| Transcription check (UC-04) | analytic sparse Jacobian 54–529× faster than finite differences (O(N) against O(N²)), agreeing to 1e-10 |
+
+Walk-through with every output and figure: [Worked examples and design scenarios](docs/code/examples.md).
 
 ## Documentation
 
@@ -81,7 +109,8 @@ Details: [Conclusions](docs/15-conclusions.md) · [Benchmark](docs/14-results-wa
 |---|---|
 | Project | [Problem](docs/01-problem.md) · [State of the art](docs/02-state-of-the-art.md) · [Methodology](docs/03-methodology.md) · [Design decisions](docs/04-design-decisions.md) |
 | Theory | [OCP → NLP](docs/05-ocp-theory.md) · [UF dynamics](docs/06-dynamics-uf.md) · [FC dynamics](docs/07-dynamics-fc.md) · [Transcription](docs/08-transcription.md) · [Constraints](docs/09-constraints.md) · [Cost function](docs/10-cost-function.md) · [Warm start](docs/11-warm-start.md) |
-| Results | [Validation](docs/12-results-validation.md) · [Regularisation](docs/13-results-penalties.md) · [Warm-start benchmark](docs/14-results-warmstart.md) · [Conclusions](docs/15-conclusions.md) |
+| Results | [Validation](docs/12-results-validation.md) · [Regularisation](docs/13-results-penalties.md) · [Warm-start benchmark](docs/14-results-warmstart.md) · [Derivatives: v1 and v2](docs/derivatives.md) · [Conclusions](docs/15-conclusions.md) |
+| Code | [Overview](docs/code/index.md) · [Architecture](docs/code/architecture.md) · [Formulation in code](docs/code/formulation.md) · [Use cases](docs/code/use-cases.md) · [Worked examples](docs/code/examples.md) · [Aircraft format](docs/code/aircraft-format.md) |
 | Appendix | [Coordinate frames](docs/appendix-frames.md) · [Adjoint method](docs/appendix-adjoint.md) · [Aircraft MSN012](docs/appendix-msn012.md) · [References](docs/references.md) |
 
 Browse locally with `pip install mkdocs-material && mkdocs serve`.
@@ -91,18 +120,21 @@ Browse locally with `pip install mkdocs-material && mkdocs serve`.
 ```
 ├── thesis/        full thesis (PDF)
 ├── docs/          chapter-by-chapter write-up (MkDocs) + figures in docs/assets/
-└── results/       aggregated benchmark table (CSV)
+│   └── code/      documentation of the public code edition
+├── code/          public C++17 edition: generic aircraft, models, formulation, examples
+└── results/       aggregated benchmark table (CSV) + column dictionary
 ```
 
 ## Tech stack
 
-Python · CasADi · IPOPT (MA57 / MUMPS) · C++17 (production port) · Linux · NumPy · Matplotlib · MkDocs.
+Thesis solver: Python · CasADi · IPOPT (MA57 / MUMPS) · Linux. A C++17 production port is in development and was not used for the published numbers.
+Public edition: C++17 · CMake · nlohmann/json · Python + Matplotlib for the figures. Documentation: MkDocs.
 
 ## About the code
 
-The production solver was designed exclusively as a product for **Singular Aircraft** and, for privacy reasons towards the company, it is **not** part of this repository. This repo shares the **knowledge**: the research, the mathematical methods and their application in code, documented through equations, diagrams, pseudocode, figures and results.
+The production solver was designed exclusively as a product for **Singular Aircraft** and, for privacy reasons towards the company, it is **not** part of this repository. This repo shares the **knowledge**: the research, the mathematical methods and their application in code, documented through equations, diagrams, pseudocode, figures and results. On top of that it includes [`code/`](code/), a restricted public edition written from scratch from the thesis equations, with a generic aircraft and runnable examples. Its [scope](docs/code/index.md#scope) lists what is and is not included.
 
 ## Author & citation
 
 **Pablo Urioste Alarcón** — [LinkedIn](https://www.linkedin.com/in/pablo-urioste-alarcón-239804235) — supervised by Dr. Àlex Ferrer Ferré (CIMNE / UPC).
-Cite via [`CITATION.cff`](CITATION.cff). Documentation and figures: CC BY 4.0 ([LICENSE](LICENSE)); example code: MIT ([LICENSE-CODE](LICENSE-CODE)). Exclusions and trademarks: [NOTICE.md](NOTICE.md).
+Cite via [`CITATION.cff`](CITATION.cff). Documentation and figures: CC BY 4.0 ([LICENSE](LICENSE)); code in `code/`: MIT ([LICENSE-CODE](LICENSE-CODE)). Exclusions and trademarks: [NOTICE.md](NOTICE.md).

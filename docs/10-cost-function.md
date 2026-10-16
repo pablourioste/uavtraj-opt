@@ -24,7 +24,7 @@ UF uses the scalar airspeed in $T\cdot V$; FC uses the norm of the body velocity
 
 Two artefacts of direct collocation motivate $J_{pen}$:
 
-1. **Jacobian noise.** With finite-difference derivatives the error floors near $10^{-6}$; the KKT residual oscillates and IPOPT cannot certify convergence. A quadratic term shifts the gradient locally and smooths the search direction.
+1. **Jacobian noise (v1 solver).** With the finite-difference derivatives of the version used for the published results, the error floors near $10^{-6}$; the KKT residual oscillates and IPOPT cannot certify convergence. A quadratic term shifts the gradient locally and smooths the search direction. With exact derivatives (later version, see [Derivatives: v1 and v2](derivatives.md)) this reason disappears.
 2. **Control chatter.** The continuous problem has no rate limit, so the optimum may flip controls between bounds at adjacent nodes (bang-bang): pulse-like elevator, saw-tooth thrust that passes collocation but cannot be flown.
 
 $$
@@ -35,6 +35,6 @@ $$
 
 ## Weight selection
 
-Start from zero and raise each weight in geometric steps until (i) total variation $TV(u)=\sum_k|\Delta u_k|$ drops by about an order of magnitude and (ii) the penalty stays below **~15 %** of the total cost, so the physical optimum is not displaced.
+Start from zero and raise each weight in geometric steps until (i) total variation $TV(u)=\sum_k|\Delta u_k|$ drops by about an order of magnitude and (ii) the penalty stays below **~15 %** of the total cost, to limit how far the physical optimum moves. The rule does not guarantee that it stays put: for the 6-DoF model it still shifts noticeably ([13. Regularisation](13-results-penalties.md)).
 
 [← Previous](09-constraints.md) · [Next: Warm start →](11-warm-start.md)

@@ -9,7 +9,7 @@ A realistic 6-DoF mission becomes an NLP with thousands of variables. Three prop
 
 - **Scaling.** Mass in tonnes, deflections in fractions of a radian, positions in kilometres. Without non-dimensionalisation the barrier sub-problem is ill-conditioned.
 - **Initial guess.** A guess that violates many constraints sends the solver on a long detour through infeasibility, often to a non-physical local minimum (negative thrust, bank reversals).
-- **Sparsity and exact derivatives.** A dense finite-difference Jacobian makes each iteration prohibitively expensive.
+- **Sparsity and exact derivatives.** A dense finite-difference Jacobian makes each iteration expensive and noisy. The results in this documentation come from the first solver version (v1), which still used forward finite differences; exact derivatives arrived in a later version (see [Derivatives: v1 and v2](derivatives.md)).
 
 ## Three-tier development
 
@@ -36,7 +36,7 @@ Every scenario is solved with both formulations (UF and FC), for minimum time an
 
 ## Warm-start assessment
 
-The warm-start chain is compared against a cold start (straight line, constant speed, zero attitude) on: seed quality (collocation defect), IPOPT iterations, wall-clock time broken down by stage, and sensitivity to the number of nodes.
+The warm-start chain is compared against a cold start (straight line, constant speed, zero attitude) on convergence, IPOPT iterations and wall-clock time broken down by stage ([14. Warm-start benchmark](14-results-warmstart.md)). Seed quality (collocation defect of each guess) and sensitivity to the number of nodes are illustrated with the generic aircraft of the public code ([Worked examples](code/examples.md)).
 
 !!! info "A deliberate choice"
     The full chain is not the fastest option in every single scenario; on easy geometries a leaner seed can save a few iterations. It is the default because it is the **only configuration that converges in every scenario**.

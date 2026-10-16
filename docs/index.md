@@ -3,7 +3,7 @@
 Documentation of a Bachelor's thesis (UPC – ESEIAAT) carried out with **CIMNE** and in collaboration with **Singular Aircraft**: a 3D trajectory optimiser for the amphibious heavy UAV **Flyox I**, built on trapezoidal direct collocation and IPOPT, and accelerated by a Hybrid A\* warm-start chain.
 
 !!! note "About the code"
-    This work was designed exclusively as a product for [Singular Aircraft](https://singularaircraft.com/inicio). For privacy reasons towards the company, the full software repository cannot be shared. What can be shared is the knowledge: the research, the mathematical methods and their application in code. That is what these pages document, through equations, diagrams, pseudocode and results.
+    This work was designed exclusively as a product for [Singular Aircraft](https://singularaircraft.com/inicio). For privacy reasons towards the company, the full software repository cannot be shared. What can be shared is the knowledge: the research, the mathematical methods and their application in code. That is what these pages document, through equations, diagrams, pseudocode and results. The repository also includes a **restricted public edition of the code** (`code/`): a generic aircraft, the dynamic models, the collocation formulation and runnable design examples. See [Code: public edition](code/index.md).
 
 ## How to read this documentation
 
@@ -14,6 +14,7 @@ Documentation of a Bachelor's thesis (UPC – ESEIAAT) carried out with **CIMNE*
 | The numbers | [14. Warm-start benchmark](14-results-warmstart.md) |
 | How the solver is built | [5. OCP and NLP](05-ocp-theory.md) → [11. Warm start](11-warm-start.md) |
 | What does *not* work yet | [15. Conclusions](15-conclusions.md) |
+| Run something | [Code: public edition](code/index.md) → [Worked examples and design scenarios](code/examples.md) |
 
 ## The idea in one picture
 
