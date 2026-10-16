@@ -139,8 +139,8 @@ Path sampleDubins(const DubinsPath& d, double step) {
     return out;
 }
 
-PlanResult hybridAStar(const Pose2& start, const Pose2& goal, double radius, const Bounds& bounds,
-                       const FreeFn& isFree, const PlannerConfig& cfg) {
+PlanResult hybridAStar(const Pose2& start, const Pose2& goal, double radius, const Bounds& bounds, const FreeFn& isFree,
+                       const PlannerConfig& cfg) {
     const auto t0 = std::chrono::steady_clock::now();
     PlanResult res;
     auto finish = [&]() {

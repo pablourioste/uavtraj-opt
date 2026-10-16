@@ -144,8 +144,8 @@ Vec TrapezoidalUF::boundaryResiduals(const Vec& z) const {
 }
 
 std::vector<std::string> TrapezoidalUF::pathConstraintNames() const {
-    std::vector<std::string> names{"stall",     "power",  "v_ne",      "load_max", "load_min",   "altitude",
-                                   "bank",      "gamma_max", "gamma_min", "cl_max",   "thrust_min", "bank_rate"};
+    std::vector<std::string> names{"stall", "power",     "v_ne",      "load_max", "load_min",   "altitude",
+                                   "bank",  "gamma_max", "gamma_min", "cl_max",   "thrust_min", "bank_rate"};
     for (const env::NoFlyZone& z : mission_.nfz) names.push_back("nfz:" + z.id);
     return names;
 }

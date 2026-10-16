@@ -601,9 +601,9 @@ int missionScenarios(const json& c) {
                            chk.nfzRun, chk.nfzCold});
     }
     io::writeCsv(out + "/summary.csv",
-                 {"index", "planner_ms", "expansions", "radius_m", "path_m", "time_uf", "time_fc", "fuel_uf",
-                  "fuel_fc", "clearance_uf_m", "clearance_fc_m", "wp_miss_uf_m", "wp_miss_fc_m", "defect_N",
-                  "defect_4N", "nfz_run", "nfz_cold"},
+                 {"index", "planner_ms", "expansions", "radius_m", "path_m", "time_uf", "time_fc", "fuel_uf", "fuel_fc",
+                  "clearance_uf_m", "clearance_fc_m", "wp_miss_uf_m", "wp_miss_fc_m", "defect_N", "defect_4N",
+                  "nfz_run", "nfz_cold"},
                  summary);
     std::printf("\ncolumns: planMs = Hybrid A* time; R = planning turn radius; path = planned length [m];\n"
                 "t = flight time [s]; clr = smallest distance to an active NFZ beyond its margin [m] (>= 0 ok);\n"

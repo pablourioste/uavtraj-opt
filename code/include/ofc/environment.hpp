@@ -19,7 +19,7 @@ struct Vec2 {
 
 struct NoFlyZone {
     std::string id;
-    std::vector<Vec2> polygon; // simple polygon, any orientation
+    std::vector<Vec2> polygon;     // simple polygon, any orientation
     double hMin = 0.0, hMax = 1e9; // altitude band [m]
     double margin = 0.0;           // required clearance [m]
 

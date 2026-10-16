@@ -30,26 +30,26 @@ Pose2 advance(const Pose2& p, double curvature, double len);
 
 struct DubinsPath {
     bool valid = false;
-    double length = 0.0;   // [m]
-    double seg[3] = {};    // segment lengths [m]
-    int dir[3] = {};       // curvature sign of each segment (+1, 0, -1)
+    double length = 0.0; // [m]
+    double seg[3] = {};  // segment lengths [m]
+    int dir[3] = {};     // curvature sign of each segment (+1, 0, -1)
     Pose2 start;
     double radius = 0.0;
 };
 
-DubinsPath dubins(const Pose2& a, const Pose2& b, double radius);          // shortest of the six words
+DubinsPath dubins(const Pose2& a, const Pose2& b, double radius);                 // shortest of the six words
 std::vector<DubinsPath> dubinsAll(const Pose2& a, const Pose2& b, double radius); // every valid word
 Path sampleDubins(const DubinsPath& d, double step);
 
 struct PlannerConfig {
-    double cell = 20.0;          // grid resolution [m]
-    int headingBins = 72;        // heading resolution (5 deg)
-    double step = 30.0;          // length of one motion primitive [m]
-    double sampleStep = 5.0;     // collision-check and output spacing [m]
-    double turnPenalty = 0.05;   // extra cost per unit of normalised curvature
-    double switchPenalty = 2.0;  // extra cost [m] when the steering changes
+    double cell = 20.0;         // grid resolution [m]
+    int headingBins = 72;       // heading resolution (5 deg)
+    double step = 30.0;         // length of one motion primitive [m]
+    double sampleStep = 5.0;    // collision-check and output spacing [m]
+    double turnPenalty = 0.05;  // extra cost per unit of normalised curvature
+    double switchPenalty = 2.0; // extra cost [m] when the steering changes
     int maxExpansions = 500000;
-    int analyticEvery = 5;       // try a Dubins shot to the goal every N expansions
+    int analyticEvery = 5; // try a Dubins shot to the goal every N expansions
 };
 
 struct Bounds {
@@ -62,12 +62,12 @@ struct PlanResult {
     Path path;
     bool found = false;
     int expansions = 0;
-    double length = 0.0;    // [m]
-    double millis = 0.0;    // wall-clock time
+    double length = 0.0; // [m]
+    double millis = 0.0; // wall-clock time
 };
 
-PlanResult hybridAStar(const Pose2& start, const Pose2& goal, double radius, const Bounds& bounds,
-                       const FreeFn& isFree, const PlannerConfig& cfg = {});
+PlanResult hybridAStar(const Pose2& start, const Pose2& goal, double radius, const Bounds& bounds, const FreeFn& isFree,
+                       const PlannerConfig& cfg = {});
 
 // Plan start -> waypoints -> goal, one Hybrid A* leg per segment. A waypoint's
 // heading is the bearing towards the next target. Zones are checked over the

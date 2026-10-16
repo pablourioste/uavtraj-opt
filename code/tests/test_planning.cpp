@@ -118,6 +118,6 @@ TEST(nlp_nfz_rows) {
         if (pc.name == "nfz:Z") active = pc.worst;
         if (pc.name == "nfz:LOW") low = pc.worst;
     }
-    CHECK(active > 0.0);         // the straight line crosses the zone
+    CHECK(active > 0.0);          // the straight line crosses the zone
     CHECK_NEAR(low, -1.0, 1e-12); // a zone below the flight is inactive
 }

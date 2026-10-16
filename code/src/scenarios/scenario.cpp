@@ -16,9 +16,9 @@ namespace ofc::scenario {
 namespace {
 
 // ── Guidance (shared by both models) ────────────────────────────────────
-constexpr double kAltitude = 0.01; // flight-path angle per metre of altitude error [rad/m]
-constexpr double kHeading = 1.5;   // bank per radian of heading error [-]
-constexpr double kL1Time = 2.5;    // L1 look-ahead distance = kL1Time * V [s]
+constexpr double kAltitude = 0.01;        // flight-path angle per metre of altitude error [rad/m]
+constexpr double kHeading = 1.5;          // bank per radian of heading error [-]
+constexpr double kL1Time = 2.5;           // L1 look-ahead distance = kL1Time * V [s]
 constexpr std::size_t kSearchWindow = 60; // path samples searched ahead for the nearest point
 
 class Guidance {

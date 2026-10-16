@@ -39,11 +39,11 @@ struct Mission {
     Vec3 end{2000.0, 0.0, -100.0};
     double headingStart = 0.0; // [rad]
     double headingEnd = 0.0;
-    double speedStart = 0.0;  // [m/s]; <= 0 means V_cruise
-    double gammaStart = 0.0;  // initial flight-path angle [rad]
-    Vec3 wind{0.0, 0.0, 0.0}; // constant NED wind [m/s]
-    double alpha = 0.0;       // 0 = minimum time, 1 = minimum fuel
-    double betaControl = 0.0; // smoothness weight on control increments
+    double speedStart = 0.0;         // [m/s]; <= 0 means V_cruise
+    double gammaStart = 0.0;         // initial flight-path angle [rad]
+    Vec3 wind{0.0, 0.0, 0.0};        // constant NED wind [m/s]
+    double alpha = 0.0;              // 0 = minimum time, 1 = minimum fuel
+    double betaControl = 0.0;        // smoothness weight on control increments
     std::vector<env::NoFlyZone> nfz; // zones enforced as path constraints
 };
 
