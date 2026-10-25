@@ -10,14 +10,18 @@
 #include "ofc/aircraft.hpp"
 #include "ofc/atmosphere.hpp"
 #include "ofc/io.hpp"
+#include "ofc/mission.hpp"
 #include "ofc/numerics.hpp"
 #include "ofc/performance.hpp"
+#include "ofc/pipeline.hpp"
 #include "ofc/planner.hpp"
 #include "ofc/point_mass.hpp"
 #include "ofc/rigid_body.hpp"
 #include "ofc/scenario.hpp"
+#include "ofc/solver.hpp"
 #include "ofc/transcription.hpp"
 #include "ofc/trim.hpp"
+#include "ofc/warm_start.hpp"
 
 namespace ofc::cases {
 
@@ -513,17 +517,31 @@ int designScenarios(const json& c) {
 }
 
 // ── UC-07 ─────────────────────────────────────────────────────────────────
+namespace {
+
+// Planned path, zones and points of interest of a mission, for plotting.
+void writeMissionGeometry(const std::string& out, const MissionSpec& m, const plan::Path& path) {
+    std::vector<Vec> pathRows, zoneRows, wpRows;
+    for (const plan::Pose2& p : path) pathRows.push_back({p.x, p.y, rad2deg(p.psi)});
+    for (std::size_t zi = 0; zi < m.zones.size(); ++zi)
+        for (const env::Vec2& v : m.zones[zi].polygon)
+            zoneRows.push_back({double(zi), v.x, v.y, m.zones[zi].hMin, std::min(m.zones[zi].hMax, 1e6),
+                                m.zones[zi].margin, m.zones[zi].activeBetween(m.hLow(), m.hHigh()) ? 1.0 : 0.0});
+    for (const env::Waypoint& w : m.waypoints) wpRows.push_back({w.position.x, w.position.y, w.tolerance});
+    wpRows.insert(wpRows.begin(), {m.flight.x0, m.flight.y0, -1.0});
+    wpRows.push_back({m.goal.x, m.goal.y, -2.0});
+    if (!path.empty()) io::writeCsv(out + "/" + m.id + "_path.csv", {"x", "y", "psi_deg"}, pathRows);
+    io::writeCsv(out + "/" + m.id + "_nfz.csv", {"zone", "x", "y", "h_min", "h_max", "margin", "active"}, zoneRows);
+    io::writeCsv(out + "/" + m.id + "_points.csv", {"x", "y", "tolerance"}, wpRows);
+}
+
+} // namespace
+
 int missionScenarios(const json& c) {
     const Aircraft ac = loadAircraft(c);
     const std::string out = c.value("output", std::string("output/uc07"));
     const int N = c.value("nodes", 80);
-    const json pj = c.value("planner", json::object());
-    plan::PlannerConfig cfg;
-    cfg.cell = pj.value("cell_m", cfg.cell);
-    cfg.headingBins = pj.value("heading_bins", cfg.headingBins);
-    cfg.step = pj.value("step_m", cfg.step);
-    const double bankFraction = pj.value("bank_fraction", 0.8);
-    const double safety = pj.value("safety_m", 10.0);
+    const ws::Config cfg = ws::Config::fromJson(c.value("planner", json::object()));
     header("UC-07  Missions with no-fly zones and waypoints (Hybrid A* + L1 guidance, UF and FC)");
 
     std::printf("%-7s %-30s | %6s %6s %6s | %6s %6s | %6s %6s | %6s %6s | %8s %8s | %7s %7s\n", "id", "mission",
@@ -532,42 +550,23 @@ int missionScenarios(const json& c) {
     std::vector<Vec> summary;
     int status = 0, idx = 0;
     for (const json& mj : c.at("missions")) {
-        scenario::Scenario sc = scenario::Scenario::fromJson(mj, ac);
-        std::vector<env::NoFlyZone> zones;
-        for (const json& z : mj.value("nfz", json::array())) zones.push_back(env::nfzFromJson(z));
-        std::vector<env::Waypoint> wps;
-        for (const json& w : mj.value("waypoints", json::array())) wps.push_back(env::waypointFromJson(w));
-        const plan::Pose2 start{sc.x0, sc.y0, sc.heading0};
-        const plan::Pose2 goal{mj.at("end").at(0).get<double>(), mj.at("end").at(1).get<double>(),
-                               deg2rad(mj.value("end_heading_deg", 0.0))};
-        const double radius = sc.V * sc.V / (isa::g0 * std::tan(bankFraction * sc.bankMax));
-        const double hLow = std::min(sc.h0, sc.h0 + sc.climb), hHigh = std::max(sc.h0, sc.h0 + sc.climb);
-
-        const plan::PlanResult pr = plan::planMission(start, wps, goal, radius, zones, hLow, hHigh, safety, cfg);
+        const MissionSpec m = MissionSpec::fromJson(mj, ac);
+        const scenario::Scenario& sc = m.flight;
+        const std::vector<env::NoFlyZone>& zones = m.zones;
+        const std::vector<env::Waypoint>& wps = m.waypoints;
+        const ws::Result warm = ws::build(ac, m, cfg);
+        const plan::PlanResult& pr = warm.plan;
+        const double radius = warm.radius;
         if (!pr.found) {
-            std::printf("%-7s %-30s | planner found no path after %d expansions\n", sc.id.c_str(),
-                        sc.title.substr(0, 30).c_str(), pr.expansions);
+            std::printf("%-7s %-30s | %s\n", sc.id.c_str(), sc.title.substr(0, 30).c_str(), warm.message.c_str());
             status = 2;
             continue;
         }
-        sc.path = pr.path;
-        const Run runUf = scenario::fly(ac, sc, Model::PointMass);
-        const Run runFc = scenario::fly(ac, sc, Model::RigidBody);
+        const Run& runUf = warm.uf;
+        const Run& runFc = warm.fc;
 
         // Geometry and trajectories for plotting.
-        std::vector<Vec> pathRows, zoneRows, wpRows;
-        for (const plan::Pose2& p : pr.path) pathRows.push_back({p.x, p.y, rad2deg(p.psi)});
-        for (std::size_t zi = 0; zi < zones.size(); ++zi)
-            for (const env::Vec2& v : zones[zi].polygon)
-                zoneRows.push_back({double(zi), v.x, v.y, zones[zi].hMin, std::min(zones[zi].hMax, 1e6),
-                                    zones[zi].margin, zones[zi].activeBetween(hLow, hHigh) ? 1.0 : 0.0});
-        for (const env::Waypoint& w : wps) wpRows.push_back({w.position.x, w.position.y, w.tolerance});
-        wpRows.insert(wpRows.begin(), {start.x, start.y, -1.0});
-        wpRows.push_back({goal.x, goal.y, -2.0});
-        io::writeCsv(out + "/" + sc.id + "_path.csv", {"x", "y", "psi_deg"}, pathRows);
-        io::writeCsv(out + "/" + sc.id + "_nfz.csv", {"zone", "x", "y", "h_min", "h_max", "margin", "active"},
-                     zoneRows);
-        io::writeCsv(out + "/" + sc.id + "_points.csv", {"x", "y", "tolerance"}, wpRows);
+        writeMissionGeometry(out, m, pr.path);
         const std::vector<std::string> base{"t", "s", "x", "y", "h", "V", "gamma_deg", "chi_deg", "bank_deg", "m"};
         auto hdr = [&](std::vector<std::string> extra) {
             std::vector<std::string> h = base;
@@ -618,6 +617,246 @@ int missionScenarios(const json& c) {
     return status;
 }
 
+// ── UC-08 / UC-09 ─────────────────────────────────────────────────────────
+namespace {
+
+const std::vector<std::string> kUfHeader{"t",       "x",        "y", "h", "V",  "gamma_deg",
+                                         "chi_deg", "bank_deg", "m", "T", "CL", "p_dps"};
+const std::vector<std::string> kFcHeader{"t",        "x",       "y",         "h",       "Va",     "alpha_deg",
+                                         "beta_deg", "phi_deg", "theta_deg", "psi_deg", "p_dps",  "q_dps",
+                                         "r_dps",    "m",       "T",         "de_deg",  "da_deg", "dr_deg"};
+
+std::vector<Vec> ufRows(const ocp::Trajectory& t) {
+    std::vector<Vec> rows;
+    for (int k = 0; k < t.nodes(); ++k) {
+        const Vec &x = t.X[k], &u = t.U[k];
+        rows.push_back({t.time(k), x[uf::X], x[uf::Y], -x[uf::Z], x[uf::V], rad2deg(x[uf::GAMMA]), rad2deg(x[uf::CHI]),
+                        rad2deg(x[uf::MU]), x[uf::MASS], u[uf::THRUST], u[uf::CL], rad2deg(u[uf::BANK_RATE])});
+    }
+    return rows;
+}
+
+std::vector<Vec> fcRows(const ocp::Trajectory& t) {
+    std::vector<Vec> rows;
+    for (int k = 0; k < t.nodes(); ++k) {
+        const Vec &x = t.X[k], &u = t.U[k];
+        const fc::AirData air = fc::airData(x, {0.0, 0.0, 0.0});
+        rows.push_back({t.time(k), x[fc::XN], x[fc::YE], -x[fc::ZD], air.Va, rad2deg(air.alpha), rad2deg(air.beta),
+                        rad2deg(x[fc::PHI]), rad2deg(x[fc::THETA]), rad2deg(x[fc::PSI]), rad2deg(x[fc::P]),
+                        rad2deg(x[fc::Q]), rad2deg(x[fc::R]), x[fc::MASS], u[fc::THRUST], rad2deg(u[fc::ELEVATOR]),
+                        rad2deg(u[fc::AILERON]), rad2deg(u[fc::RUDDER])});
+    }
+    return rows;
+}
+
+json stageJson(const pipeline::Stage& s) {
+    if (!s.ran) return json{{"ran", false}};
+    return json{{"ran", true},
+                {"ok", s.ok},
+                {"status", s.status},
+                {"message", s.message},
+                {"seed", s.seed},
+                {"millis", s.millis},
+                {"iterations", s.iterations},
+                {"objective", s.objective},
+                {"guess_defect", s.guessDefect},
+                {"penalty_share", s.penaltyShare},
+                {"verification", s.check.summary()}};
+}
+
+double fuelOf(const ocp::Trajectory& t, int massIdx) {
+    return t.nodes() ? t.X.front()[massIdx] - t.X.back()[massIdx] : 0.0;
+}
+
+bool optimiserMissing() {
+    if (nlp::available()) return false;
+    std::printf("skipped: this build has no IPOPT. Install it (e.g. apt install coinor-libipopt-dev pkg-config)\n"
+                "and reconfigure; CMake links it automatically when pkg-config finds it.\n");
+    return true;
+}
+
+// Status, iterations and time of a stage; "!" marks a converged solve whose
+// independent verification failed.
+std::string fmtStage(const pipeline::Stage& s) {
+    char buf[96];
+    if (!s.ran) return "-";
+    const std::string st = s.status + (s.ok || s.status == "failed" ? "" : "!");
+    std::snprintf(buf, sizeof buf, "%-10s %4d %7.0f", st.c_str(), s.iterations, s.millis);
+    return buf;
+}
+
+} // namespace
+
+int optimalMissions(const json& c) {
+    const Aircraft ac = loadAircraft(c);
+    const std::string out = c.value("output", std::string("output/uc08"));
+    const pipeline::Config cfg = pipeline::Config::fromJson(c.value("pipeline", json::object()));
+    header("UC-08  Optimal missions (warm start -> UF -> FC, IPOPT)");
+    if (optimiserMissing()) return 0;
+    std::printf("pipeline %s, N = %d (UF) / %d (FC), alpha = %.2f (0 time, 1 fuel), beta = %.2f (controls) / "
+                "%.2f (attitude)\n\n",
+                cfg.label().c_str(), cfg.nodesUf, cfg.nodesFc, cfg.alpha, cfg.betaControl, cfg.betaState);
+    std::printf("%-6s | %6s | %-10s %4s %7s %6s %6s %4s | %-10s %4s %7s %6s %6s %4s | %5s %5s %5s %5s %6s\n", "id",
+                "WS[ms]", "UF", "it", "t[ms]", "tf[s]", "fuel_g", "pen%", "FC", "it", "t[ms]", "tf[s]", "fuel_g",
+                "pen%", "clrUF", "clrFC", "wpUF", "wpFC", "simUF");
+
+    std::vector<Vec> summary;
+    json report = json::array();
+    int status = 0, idx = 0;
+    for (const json& mj : c.at("missions")) {
+        const MissionSpec m = MissionSpec::fromJson(mj, ac);
+        const pipeline::Result r = pipeline::run(ac, m, cfg);
+        if (!r.ok()) status = 2;
+
+        writeMissionGeometry(out, m, r.warm.plan.path);
+        if (r.uf.ran) {
+            io::writeCsv(out + "/" + m.id + "_ws.csv", kUfHeader, ufRows(r.ufGuess));
+            io::writeCsv(out + "/" + m.id + "_uf.csv", kUfHeader, ufRows(r.ufOpt));
+        }
+        if (r.fc.ran) io::writeCsv(out + "/" + m.id + "_fc.csv", kFcHeader, fcRows(r.fcOpt));
+
+        const double nan = std::numeric_limits<double>::quiet_NaN();
+        auto orNan = [nan](double v) { return std::isfinite(v) ? v : nan; };
+        const double clrUf =
+            r.uf.ran ? orNan(pipeline::clearanceAlong(r.ufOpt, uf::X, uf::Y, m.zones, m.hLow(), m.hHigh())) : nan;
+        const double clrFc =
+            r.fc.ran ? orNan(pipeline::clearanceAlong(r.fcOpt, fc::XN, fc::YE, m.zones, m.hLow(), m.hHigh())) : nan;
+        const double wpUf = r.uf.ran ? pipeline::waypointMissAlong(r.ufOpt, uf::X, uf::Y, m.waypoints) : nan;
+        const double wpFc = r.fc.ran ? pipeline::waypointMissAlong(r.fcOpt, fc::XN, fc::YE, m.waypoints) : nan;
+        const pipeline::SimulationError sim =
+            r.uf.ran ? pipeline::ufSimulationError(ac, r.ufOpt) : pipeline::SimulationError{nan, nan};
+        const double simUf = sim.local;
+        const double tfUf = r.uf.ran ? r.ufOpt.tf : nan, tfFc = r.fc.ran ? r.fcOpt.tf : nan;
+        const double fuelUf = r.uf.ran ? 1e3 * fuelOf(r.ufOpt, uf::MASS) : nan;
+        const double fuelFc = r.fc.ran ? 1e3 * fuelOf(r.fcOpt, fc::MASS) : nan;
+
+        auto num = [](double v, const char* f) {
+            char buf[32];
+            if (std::isnan(v)) return std::string("-");
+            std::snprintf(buf, sizeof buf, f, v);
+            return std::string(buf);
+        };
+        const double penUf = r.uf.ran ? 100.0 * r.uf.penaltyShare : nan;
+        const double penFc = r.fc.ran ? 100.0 * r.fc.penaltyShare : nan;
+        std::printf("%-6s | %6.0f | %s %6s %6s %4s | %s %6s %6s %4s | %5s %5s %5s %5s %6s%s\n", m.id.c_str(),
+                    r.warmStage.millis, fmtStage(r.uf).c_str(), num(tfUf, "%.1f").c_str(), num(fuelUf, "%.1f").c_str(),
+                    num(penUf, "%.0f").c_str(), fmtStage(r.fc).c_str(), num(tfFc, "%.1f").c_str(),
+                    num(fuelFc, "%.1f").c_str(), num(penFc, "%.0f").c_str(), num(clrUf, "%.0f").c_str(),
+                    num(clrFc, "%.0f").c_str(), num(m.waypoints.empty() ? nan : wpUf, "%.1f").c_str(),
+                    num(m.waypoints.empty() ? nan : wpFc, "%.1f").c_str(), num(simUf, "%.2f").c_str(),
+                    r.ok() ? "" : "  (CHECK)");
+        if (r.warmStage.ran && !r.warmStage.ok) std::printf("       warm start: %s\n", r.warmStage.message.c_str());
+        for (const auto* s : {&r.uf, &r.fc})
+            if (s->ran && !s->ok)
+                std::printf("       %s: %s; %s\n", s == &r.uf ? "UF" : "FC", s->message.c_str(),
+                            s->check.summary().c_str());
+
+        summary.push_back({double(idx++),
+                           r.warmStage.millis,
+                           r.uf.ok ? 1.0 : 0.0,
+                           double(r.uf.iterations),
+                           r.uf.millis,
+                           tfUf,
+                           fuelUf,
+                           r.fc.ok ? 1.0 : 0.0,
+                           double(r.fc.iterations),
+                           r.fc.millis,
+                           tfFc,
+                           fuelFc,
+                           clrUf,
+                           clrFc,
+                           wpUf,
+                           wpFc,
+                           sim.local,
+                           sim.drift,
+                           r.uf.guessDefect,
+                           r.fc.guessDefect,
+                           penUf,
+                           penFc});
+        report.push_back({{"id", m.id},
+                          {"title", m.title},
+                          {"pipeline", cfg.label()},
+                          {"warm_start", stageJson(r.warmStage)},
+                          {"uf", stageJson(r.uf)},
+                          {"fc", stageJson(r.fc)},
+                          {"total_ms", r.totalMillis}});
+    }
+    io::writeCsv(out + "/summary.csv",
+                 {"index",          "ws_ms",          "uf_ok",          "uf_iter",         "uf_ms",
+                  "tf_uf",          "fuel_uf_g",      "fc_ok",          "fc_iter",         "fc_ms",
+                  "tf_fc",          "fuel_fc_g",      "clearance_uf_m", "clearance_fc_m",  "wp_miss_uf_m",
+                  "wp_miss_fc_m",   "sim_local_uf_m", "sim_drift_uf_m", "guess_defect_uf", "guess_defect_fc",
+                  "penalty_uf_pct", "penalty_fc_pct"},
+                 summary);
+    io::writeJson(out + "/report.json", report);
+    std::printf("\ncolumns: WS = planner + guidance time; status, it = IPOPT iterations, t = solve time,\n"
+                "tf = flight time, fuel in grams, pen = share of the cost due to the smoothness terms;\n"
+                "clr = smallest distance beyond any zone's margin along the\n"
+                "optimal path [m] (>= 0 ok); wp = largest waypoint miss [m]; simUF = largest position error [m]\n"
+                "of an RK4 simulation of each interval driven by the optimal UF controls (discretisation error).\n");
+    std::printf("CSV and report.json written to %s/\n", out.c_str());
+    return status;
+}
+
+int warmStartBenchmark(const json& c) {
+    const Aircraft ac = loadAircraft(c);
+    const std::string out = c.value("output", std::string("output/uc09"));
+    const pipeline::Config base = pipeline::Config::fromJson(c.value("pipeline", json::object()));
+    const std::vector<std::string> labels =
+        c.value("pipelines", std::vector<std::string>{"COLD>UF", "WS>UF", "WS>FC", "WS>UF>FC"});
+    const int repeats = std::max(1, c.value("repeats", 1));
+    header("UC-09  Warm-start benchmark (same missions, several pipelines)");
+    if (optimiserMissing()) return 0;
+    std::printf("N = %d (UF) / %d (FC), alpha = %.2f, %d repeat(s), best wall-clock time kept\n\n", base.nodesUf,
+                base.nodesFc, base.alpha, repeats);
+    std::printf("%-6s %-10s | %6s | %-10s %4s %7s | %-10s %4s %7s | %8s %7s %6s %6s\n", "id", "pipeline", "WS[ms]",
+                "UF", "it", "t[ms]", "FC", "it", "t[ms]", "total", "J", "tf[s]", "fuel_g");
+
+    std::vector<Vec> rows;
+    json records = json::array();
+    int mi = 0;
+    for (const json& mj : c.at("missions")) {
+        const MissionSpec m = MissionSpec::fromJson(mj, ac);
+        for (std::size_t pi = 0; pi < labels.size(); ++pi) {
+            const pipeline::Config cfg = base.withLabel(labels[pi]);
+            pipeline::Result best;
+            for (int rep = 0; rep < repeats; ++rep) {
+                pipeline::Result r = pipeline::run(ac, m, cfg);
+                if (rep == 0 || r.totalMillis < best.totalMillis) best = std::move(r);
+            }
+            // Outcome of the last stage that ran (FC if it ran, UF otherwise).
+            const bool lastFc = best.fc.ran;
+            const pipeline::Stage& last = lastFc ? best.fc : best.uf;
+            const ocp::Trajectory& traj = lastFc ? best.fcOpt : best.ufOpt;
+            const double tf = traj.tf,
+                         fuel = 1e3 * fuelOf(traj, lastFc ? static_cast<int>(fc::MASS) : static_cast<int>(uf::MASS));
+            std::printf("%-6s %-10s | %6.0f | %-24s | %-24s | %8.0f %7.4f %6.1f %6.2f\n", m.id.c_str(),
+                        labels[pi].c_str(), best.warmStage.millis, fmtStage(best.uf).c_str(), fmtStage(best.fc).c_str(),
+                        best.totalMillis, last.objective, tf, fuel);
+            rows.push_back({double(mi), double(pi), best.warmStage.millis, best.uf.ran ? double(best.uf.ok) : -1.0,
+                            double(best.uf.iterations), best.uf.millis, best.fc.ran ? double(best.fc.ok) : -1.0,
+                            double(best.fc.iterations), best.fc.millis, best.totalMillis, last.objective, tf, fuel,
+                            best.uf.guessDefect, best.fc.guessDefect});
+            records.push_back({{"mission", m.id},
+                               {"pipeline", labels[pi]},
+                               {"warm_start", stageJson(best.warmStage)},
+                               {"uf", stageJson(best.uf)},
+                               {"fc", stageJson(best.fc)},
+                               {"total_ms", best.totalMillis}});
+        }
+        ++mi;
+    }
+    io::writeCsv(out + "/benchmark.csv",
+                 {"mission", "pipeline", "ws_ms", "uf_ok", "uf_iter", "uf_ms", "fc_ok", "fc_iter", "fc_ms", "total_ms",
+                  "objective", "tf_s", "fuel_g", "guess_defect_uf", "guess_defect_fc"},
+                 rows);
+    io::writeJson(out + "/benchmark.json", records);
+    std::printf("\nstatus: solved / acceptable = converged; ok flags in the CSV are -1 when the stage did not run.\n"
+                "Timings depend on the machine; iteration counts on the IPOPT version and linear solver.\n");
+    std::printf("CSV and benchmark.json written to %s/\n", out.c_str());
+    return 0;
+}
+
 int run(const std::string& casePath) {
     const json c = io::readJson(casePath);
     const std::string uc = c.value("use_case", std::string());
@@ -628,7 +867,9 @@ int run(const std::string& casePath) {
     if (uc == "UC-05") return designCharts(c);
     if (uc == "UC-06") return designScenarios(c);
     if (uc == "UC-07") return missionScenarios(c);
-    throw std::invalid_argument("unknown use_case '" + uc + "' in " + casePath + " (expected UC-01 ... UC-07)");
+    if (uc == "UC-08") return optimalMissions(c);
+    if (uc == "UC-09") return warmStartBenchmark(c);
+    throw std::invalid_argument("unknown use_case '" + uc + "' in " + casePath + " (expected UC-01 ... UC-09)");
 }
 
 } // namespace ofc::cases

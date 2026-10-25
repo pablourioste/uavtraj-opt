@@ -8,6 +8,7 @@ Requires numpy and matplotlib.
 
 import argparse
 import csv
+import json
 import pathlib
 import sys
 
@@ -285,9 +286,7 @@ def _clearance(zones, x, y):
     return np.min([_signed_distance(x, y, z["poly"]) - z["margin"] for z in act], axis=0)
 
 
-def _top_view(a, d, mid, zones, legend=True):
-    pts = load(d / f"{mid}_points.csv")
-    path, uf, fc = load(d / f"{mid}_path.csv"), load(d / f"{mid}_uf.csv"), load(d / f"{mid}_fc.csv")
+def _draw_zones(a, zones):
     for z in zones:
         poly = np.vstack([z["poly"], z["poly"][:1]])
         if z["active"]:
@@ -303,11 +302,10 @@ def _top_view(a, d, mid, zones, legend=True):
             a.fill(poly[:, 1], poly[:, 0], facecolor="none", edgecolor="gray", hatch="//", lw=0.8)
             a.annotate(f"overflown\n(top {z['h'][1]:.0f} m)", (poly[:, 1].mean(), poly[:, 0].mean()), fontsize=6,
                        ha="center", va="center", color="gray")
+
+
+def _draw_points(a, pts):
     s, e = (pts["x"][0], pts["y"][0]), (pts["x"][-1], pts["y"][-1])
-    a.plot([s[1], e[1]], [s[0], e[0]], ":", color="gray", lw=1, label="straight line (cold start)")
-    a.plot(path["y"], path["x"], color="k", lw=0.8, label="Hybrid A* path")
-    a.plot(uf["y"], uf["x"], color=UF_COLOR, lw=1.4, label="UF flown")
-    a.plot(fc["y"], fc["x"], color=FC_COLOR, ls="--", lw=1.2, label="FC flown")
     for i in range(1, len(pts["x"]) - 1):
         a.plot(pts["y"][i], pts["x"][i], "D", color="#2ca02c", ms=5)
         a.add_patch(plt.Circle((pts["y"][i], pts["x"][i]), pts["tolerance"][i], fill=False, color="#2ca02c", lw=0.8))
@@ -315,6 +313,18 @@ def _top_view(a, d, mid, zones, legend=True):
     a.plot(e[1], e[0], "s", color="k", ms=5)
     a.set(xlabel="East [m]", ylabel="North [m]")
     a.set_aspect("equal", adjustable="datalim")
+
+
+def _top_view(a, d, mid, zones, legend=True):
+    pts = load(d / f"{mid}_points.csv")
+    path, uf, fc = load(d / f"{mid}_path.csv"), load(d / f"{mid}_uf.csv"), load(d / f"{mid}_fc.csv")
+    _draw_zones(a, zones)
+    s, e = (pts["x"][0], pts["y"][0]), (pts["x"][-1], pts["y"][-1])
+    a.plot([s[1], e[1]], [s[0], e[0]], ":", color="gray", lw=1, label="straight line (cold start)")
+    a.plot(path["y"], path["x"], color="k", lw=0.8, label="Hybrid A* path")
+    a.plot(uf["y"], uf["x"], color=UF_COLOR, lw=1.4, label="UF flown")
+    a.plot(fc["y"], fc["x"], color=FC_COLOR, ls="--", lw=1.2, label="FC flown")
+    _draw_points(a, pts)
     if legend:
         a.legend(fontsize=6, loc="lower right")
 
@@ -388,13 +398,119 @@ def plot_missions(out):
         save(fig, out, f"uc07_{mid}.png")
 
 
+# ── UC-08 ───────────────────────────────────────────────────────────────────
+WS_COLOR = "#7f7f7f"
+
+
+def _optimal_top_view(a, d, mid, legend=True):
+    zones, pts = _zones(d, mid), load(d / f"{mid}_points.csv")
+    ws, uf, fc = load(d / f"{mid}_ws.csv"), load(d / f"{mid}_uf.csv"), load(d / f"{mid}_fc.csv")
+    _draw_zones(a, zones)
+    if (d / f"{mid}_path.csv").exists():
+        path = load(d / f"{mid}_path.csv")
+        a.plot(path["y"], path["x"], color="k", lw=0.6, alpha=0.6, label="Hybrid A* path")
+    a.plot(ws["y"], ws["x"], color=WS_COLOR, ls="-.", lw=1.0, label="warm start (flown)")
+    a.plot(uf["y"], uf["x"], color=UF_COLOR, lw=1.6, label="UF optimum")
+    a.plot(fc["y"], fc["x"], color=FC_COLOR, ls="--", lw=1.3, label="FC optimum")
+    _draw_points(a, pts)
+    if legend:
+        a.legend(fontsize=6, loc="lower right")
+    return uf, fc
+
+
+def plot_optimal(out):
+    d = ROOT / "uc08"
+    ids = [p.stem.replace("_uf", "") for p in sorted(d.glob("M-*_uf.csv"))]
+    if not ids:
+        print("skip UC-08: run data/cases/uc08_optimal_missions.json with an IPOPT build first")
+        return
+
+    fig, ax = plt.subplots(1, len(ids), figsize=(4.0 * len(ids), 5.6))
+    for a, mid in zip(np.atleast_1d(ax), ids):
+        uf, fc = _optimal_top_view(a, d, mid, legend=False)
+        fuel = lambda t: 1e3 * (t["m"][0] - t["m"][-1])  # noqa: E731
+        a.set_title(f"{mid}: UF {uf['t'][-1]:.0f} s, {fuel(uf):.1f} g · FC {fc['t'][-1]:.0f} s, {fuel(fc):.1f} g",
+                    fontsize=8)
+        a.tick_params(labelsize=7)
+    handles = [plt.Line2D([], [], color="k", lw=0.6, alpha=0.6, label="Hybrid A* path"),
+               plt.Line2D([], [], color=WS_COLOR, ls="-.", label="warm start (flown by the guidance)"),
+               plt.Line2D([], [], color=UF_COLOR, lw=1.6, label="point-mass optimum (UF)"),
+               plt.Line2D([], [], color=FC_COLOR, ls="--", lw=1.3, label="6-DoF optimum (FC)"),
+               plt.matplotlib.patches.Patch(facecolor="#d62728", alpha=0.3, edgecolor="#d62728",
+                                            label="no-fly zone (margin dotted)"),
+               plt.Line2D([], [], color="#2ca02c", marker="D", ls="none", label="waypoint")]
+    fig.legend(handles=handles, loc="lower center", ncol=6, fontsize=8, frameon=False)
+    fig.suptitle("Minimum-fuel trajectories optimised with IPOPT: warm start -> point mass -> 6-DoF", fontsize=10)
+    fig.tight_layout(rect=(0, 0.06, 1, 0.96))
+    fig.savefig(out / "uc08_cover.png", dpi=150)
+    plt.close(fig)
+    print("  ", out / "uc08_cover.png")
+
+    for mid in ids:
+        fig = plt.figure(figsize=(12, 7.5))
+        gs = fig.add_gridspec(4, 2, width_ratios=[1.2, 1])
+        uf, fc = _optimal_top_view(fig.add_subplot(gs[:, 0]), d, mid)
+        ws = load(d / f"{mid}_ws.csv")
+        rows = [("altitude [m]", "h", "h", "h"), ("airspeed [m/s]", "V", "V", "Va"),
+                ("bank [deg]", "bank_deg", "bank_deg", "phi_deg"), ("thrust [N]", "T", "T", "T")]
+        for i, (label, kws, kuf, kfc) in enumerate(rows):
+            a = fig.add_subplot(gs[i, 1])
+            a.plot(ws["t"], ws[kws], color=WS_COLOR, ls="-.", lw=1.0, label="warm start")
+            a.plot(uf["t"], uf[kuf], color=UF_COLOR, lw=1.4, label="UF optimum")
+            a.plot(fc["t"], fc[kfc], color=FC_COLOR, ls="--", lw=1.2, label="FC optimum")
+            a.set(ylabel=label)
+            if i == 0:
+                a.set_title(f"{mid}: profiles in time", fontsize=9)
+                a.legend(fontsize=7)
+            if i == len(rows) - 1:
+                a.set_xlabel("t [s]")
+        save(fig, out, f"uc08_{mid}.png")
+
+
+# ── UC-09 ───────────────────────────────────────────────────────────────────
+def plot_benchmark(out):
+    path = ROOT / "uc09" / "benchmark.json"
+    if not path.exists():
+        print("skip UC-09: run data/cases/uc09_warmstart_benchmark.json with an IPOPT build first")
+        return
+    with open(path) as f:
+        rec = json.load(f)
+    missions = sorted({r["mission"] for r in rec})
+    get = {(r["mission"], r["pipeline"]): r for r in rec}
+    x = np.arange(len(missions))
+
+    fig, ax = plt.subplots(1, 3, figsize=(14, 4.2))
+    # UF stage from a cold and from a warm start.
+    for i, (lab, col) in enumerate([("COLD>UF", "#bbbbbb"), ("WS>UF", UF_COLOR)]):
+        it = [get[(m, lab)]["uf"]["iterations"] if (m, lab) in get else 0 for m in missions]
+        ax[0].bar(x + (i - 0.5) * 0.38, it, 0.38, color=col, label=lab.replace(">", " > "))
+    ax[0].set(xticks=x, xticklabels=missions, ylabel="IPOPT iterations", title="UF stage: cold vs warm start")
+    ax[0].legend(fontsize=8)
+    # Objective of the UF optimum relative to the warm-started one.
+    rel = [100.0 * (get[(m, "COLD>UF")]["uf"]["objective"] / get[(m, "WS>UF")]["uf"]["objective"] - 1.0)
+           if (m, "COLD>UF") in get and (m, "WS>UF") in get else 0.0 for m in missions]
+    ax[1].bar(x, rel, 0.5, color="#bbbbbb")
+    ax[1].axhline(0.0, color="k", lw=0.8)
+    ax[1].set(xticks=x, xticklabels=missions, ylabel="cost increase [%]",
+              title="UF optimum reached from a cold start\n(relative to the warm-started optimum)")
+    # FC stage seeded directly or through the UF optimum.
+    for i, (lab, col) in enumerate([("WS>FC", "#e8a0a0"), ("WS>UF>FC", FC_COLOR)]):
+        ms = [get[(m, lab)]["fc"]["millis"] if (m, lab) in get else 0 for m in missions]
+        ax[2].bar(x + (i - 0.5) * 0.38, ms, 0.38, color=col, label=lab.replace(">", " > "))
+    ax[2].set(xticks=x, xticklabels=missions, ylabel="FC solve time [ms]",
+              title="FC stage: seeded by the flown warm start\nor by the UF optimum (machine-dependent)")
+    ax[2].legend(fontsize=8)
+    save(fig, out, "uc09_benchmark.png")
+
+
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("--out", default=str(ROOT / "figures"), help="directory for the PNG files")
     args = parser.parse_args()
     out = pathlib.Path(args.out)
     out.mkdir(parents=True, exist_ok=True)
-    for fn in (plot_simulation, plot_transcription, plot_design_charts, plot_scenarios, plot_missions):
+    for fn in (plot_simulation, plot_transcription, plot_design_charts, plot_scenarios, plot_missions, plot_optimal,
+               plot_benchmark):
         fn(out)
     return 0
 

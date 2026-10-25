@@ -27,6 +27,7 @@ Mission climbingLeg() {
     m.speedStart = 25.0;
     m.alpha = 0.7;
     m.betaControl = 0.05;
+    m.betaState = 0.05;
     return m;
 }
 } // namespace

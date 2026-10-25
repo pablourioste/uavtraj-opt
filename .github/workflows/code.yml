@@ -33,8 +33,43 @@ jobs:
         run: cmake --build build --config Release
       - name: Test
         run: ctest --test-dir build --output-on-failure -C Release
-      - name: Run all use cases
+      - name: Run all use cases (UC-08/09 are skipped without IPOPT)
         shell: bash
         run: |
           exe=build/ofc; [ -f build/Release/ofc.exe ] && exe=build/Release/ofc.exe
           "$exe" data/cases/uc0*.json
+  build-test-ipopt:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: code
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install IPOPT
+        run: sudo apt-get update && sudo apt-get install -y coinor-libipopt-dev pkg-config
+      - name: Configure (IPOPT required)
+        run: cmake -S . -B build -DCMAKE_BUILD_TYPE=Release -DOFC_IPOPT=ON
+      - name: Build
+        run: cmake --build build -j
+      - name: Test (including the optimisation tests)
+        run: ctest --test-dir build --output-on-failure
+      - name: Run the optimisation use cases
+        run: ./build/ofc data/cases/uc08_optimal_missions.json data/cases/uc09_warmstart_benchmark.json
+  build-test-ipopt-windows:
+    runs-on: windows-latest
+    defaults:
+      run:
+        working-directory: code
+        shell: pwsh
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install IPOPT, build (IPOPT required), test, run the optimisation use cases
+        run: |
+          ./utils/install_ipopt.ps1
+          cmake -S . -B build -G "Visual Studio 17 2022" -A x64 -DOFC_IPOPT=ON
+          if ($LASTEXITCODE) { exit $LASTEXITCODE }
+          cmake --build build --config Release
+          if ($LASTEXITCODE) { exit $LASTEXITCODE }
+          ctest --test-dir build --output-on-failure -C Release
+          if ($LASTEXITCODE) { exit $LASTEXITCODE }
+          ./build/Release/ofc.exe data/cases/uc08_optimal_missions.json data/cases/uc09_warmstart_benchmark.json

@@ -48,7 +48,7 @@ UfScales UfScales::fromAircraft(const Aircraft& ac, double distance) {
 }
 
 TrapezoidalUF::TrapezoidalUF(const Aircraft& ac, const Mission& mission, int N, UfScales scales)
-    : ac_(ac), mission_(mission), N_(N), scales_(std::move(scales)) {
+    : ac_(ac), mission_(mission), N_(N), layout_{N, NX, NU}, scales_(std::move(scales)) {
     if (N_ < 2) throw std::invalid_argument("TrapezoidalUF: N must be >= 2");
     if (static_cast<int>(scales_.x.size()) != NX || static_cast<int>(scales_.u.size()) != NU)
         throw std::invalid_argument("TrapezoidalUF: scale vectors have the wrong size");
@@ -56,78 +56,40 @@ TrapezoidalUF::TrapezoidalUF(const Aircraft& ac, const Mission& mission, int N, 
     Pattern p = structuralPattern(ac_);
     patternA_ = std::move(p.A);
     patternB_ = std::move(p.B);
+    for (const env::NoFlyZone& zone : mission_.nfz)
+        nfzActive_.push_back(zone.activeBetween(mission_.hLow(), mission_.hHigh()));
 }
 
 Vec TrapezoidalUF::pack(double tf, const std::vector<Vec>& X, const std::vector<Vec>& U) const {
-    Vec z(numVariables());
-    z[idxTf()] = tf;
-    for (int k = 0; k < N_; ++k) {
-        for (int i = 0; i < NX; ++i) z[idxState(k, i)] = X[k][i];
-        for (int j = 0; j < NU; ++j) z[idxControl(k, j)] = U[k][j];
-    }
-    return z;
+    return ocp::pack(layout_, {tf, X, U});
 }
 
 void TrapezoidalUF::unpack(const Vec& z, double& tf, std::vector<Vec>& X, std::vector<Vec>& U) const {
-    tf = z[idxTf()];
-    X.assign(N_, Vec(NX));
-    U.assign(N_, Vec(NU));
-    for (int k = 0; k < N_; ++k) {
-        for (int i = 0; i < NX; ++i) X[k][i] = z[idxState(k, i)];
-        for (int j = 0; j < NU; ++j) U[k][j] = z[idxControl(k, j)];
-    }
+    ocp::Trajectory t = ocp::unpack(layout_, z);
+    tf = t.tf;
+    X = std::move(t.X);
+    U = std::move(t.U);
 }
 
 Vec TrapezoidalUF::defects(const Vec& z) const {
     double tf;
     std::vector<Vec> X, U;
     unpack(z, tf, X, U);
-    const double dt = tf / (N_ - 1);
-
     std::vector<Vec> F(N_);
     for (int k = 0; k < N_; ++k) F[k] = rhs(ac_, X[k], U[k], mission_.wind);
-
-    Vec d(numDefects());
-    for (int k = 0; k < N_ - 1; ++k)
-        for (int i = 0; i < NX; ++i)
-            d[k * NX + i] = (X[k + 1][i] - X[k][i] - 0.5 * dt * (F[k][i] + F[k + 1][i])) / scales_.x[i];
-    return d;
+    return ocp::trapezoidalDefects(layout_, tf, X, F, scales_.x);
 }
 
 std::vector<Triplet> TrapezoidalUF::defectJacobian(const Vec& z) const {
     double tf;
     std::vector<Vec> X, U;
     unpack(z, tf, X, U);
-    const double dt = tf / (N_ - 1);
-
     std::vector<Vec> F(N_), A(N_), B(N_);
     for (int k = 0; k < N_; ++k) {
         F[k] = rhs(ac_, X[k], U[k], mission_.wind);
         jacobian(ac_, X[k], U[k], A[k], B[k]);
     }
-
-    std::vector<Triplet> J;
-    J.reserve(static_cast<std::size_t>(N_ - 1) * NX * (2 * NX + 2 * NU + 1));
-    for (int k = 0; k < N_ - 1; ++k) {
-        for (int i = 0; i < NX; ++i) {
-            const int row = k * NX + i;
-            const double s = 1.0 / scales_.x[i];
-            J.push_back({row, idxTf(), -s * (F[k][i] + F[k + 1][i]) / (2.0 * (N_ - 1))});
-            for (int j = 0; j < NX; ++j) {
-                const bool diag = i == j;
-                if (!diag && !patternA_[i * NX + j]) continue;
-                const double eye = diag ? 1.0 : 0.0;
-                J.push_back({row, idxState(k, j), s * (-eye - 0.5 * dt * A[k][i * NX + j])});
-                J.push_back({row, idxState(k + 1, j), s * (eye - 0.5 * dt * A[k + 1][i * NX + j])});
-            }
-            for (int j = 0; j < NU; ++j) {
-                if (!patternB_[i * NU + j]) continue;
-                J.push_back({row, idxControl(k, j), -s * 0.5 * dt * B[k][i * NU + j]});
-                J.push_back({row, idxControl(k + 1, j), -s * 0.5 * dt * B[k + 1][i * NU + j]});
-            }
-        }
-    }
-    return J;
+    return ocp::trapezoidalJacobian(layout_, tf, F, A, B, scales_.x, patternA_, patternB_);
 }
 
 Vec TrapezoidalUF::boundaryResiduals(const Vec& z) const {
@@ -150,34 +112,42 @@ std::vector<std::string> TrapezoidalUF::pathConstraintNames() const {
     return names;
 }
 
-Vec TrapezoidalUF::pathConstraints(const Vec& z) const {
+Vec TrapezoidalUF::pathAt(const Vec& x, const Vec& u) const {
     const Envelope& e = ac_.envelope;
-    const std::size_t nc = pathConstraintNames().size();
+    const double alt = -x[Z];
+    const double n = loadFactor(ac_, x, u);
     Vec h;
-    h.reserve(nc * N_);
+    h.reserve(12 + mission_.nfz.size());
+    h.push_back(1.0 - x[V] / ac_.stallSpeed(alt, x[MASS]));
+    h.push_back(u[THRUST] * x[V] / (ac_.propulsion.eta_p * ac_.maxPower(alt)) - 1.0);
+    h.push_back(x[V] / e.V_ne - 1.0);
+    h.push_back(n / e.n_max - 1.0);
+    h.push_back((e.n_min - n) / std::max(1.0, std::fabs(e.n_min)));
+    h.push_back((e.h_min - alt) / std::max(1.0, e.h_min));
+    h.push_back(x[MU] * x[MU] / (e.phi_max * e.phi_max) - 1.0);
+    h.push_back((x[GAMMA] - e.gamma_max) / std::fabs(e.gamma_max));
+    h.push_back((e.gamma_min - x[GAMMA]) / std::fabs(e.gamma_min));
+    h.push_back(u[CL] / ac_.clMax() - 1.0);
+    h.push_back(-u[THRUST] / scales_.u[THRUST]);
+    h.push_back(u[BANK_RATE] * u[BANK_RATE] / (ac_.actuators.p_max * ac_.actuators.p_max) - 1.0);
+    // No-fly zones: keep the margin outside every zone that overlaps the mission's altitude band.
+    for (std::size_t j = 0; j < mission_.nfz.size(); ++j) {
+        const env::NoFlyZone& zone = mission_.nfz[j];
+        const double scale = std::max(zone.margin, 25.0);
+        h.push_back(nfzActive_[j] ? (zone.margin - zone.signedDistance(x[X], x[Y])) / scale : -1.0);
+    }
+    return h;
+}
+
+Vec TrapezoidalUF::pathConstraints(const Vec& z) const {
+    Vec h;
+    h.reserve((12 + mission_.nfz.size()) * N_);
     for (int k = 0; k < N_; ++k) {
         Vec x(NX), u(NU);
         for (int i = 0; i < NX; ++i) x[i] = z[idxState(k, i)];
         for (int j = 0; j < NU; ++j) u[j] = z[idxControl(k, j)];
-        const double alt = -x[Z];
-        const double n = loadFactor(ac_, x, u);
-        h.push_back(1.0 - x[V] / ac_.stallSpeed(alt, x[MASS]));
-        h.push_back(u[THRUST] * x[V] / (ac_.propulsion.eta_p * ac_.maxPower(alt)) - 1.0);
-        h.push_back(x[V] / e.V_ne - 1.0);
-        h.push_back(n / e.n_max - 1.0);
-        h.push_back((e.n_min - n) / std::max(1.0, std::fabs(e.n_min)));
-        h.push_back((e.h_min - alt) / std::max(1.0, e.h_min));
-        h.push_back(x[MU] * x[MU] / (e.phi_max * e.phi_max) - 1.0);
-        h.push_back((x[GAMMA] - e.gamma_max) / std::fabs(e.gamma_max));
-        h.push_back((e.gamma_min - x[GAMMA]) / std::fabs(e.gamma_min));
-        h.push_back(u[CL] / ac_.clMax() - 1.0);
-        h.push_back(-u[THRUST] / scales_.u[THRUST]);
-        h.push_back(u[BANK_RATE] * u[BANK_RATE] / (ac_.actuators.p_max * ac_.actuators.p_max) - 1.0);
-        // No-fly zones: keep the margin outside every zone whose altitude band contains the node.
-        for (const env::NoFlyZone& zone : mission_.nfz) {
-            const double scale = std::max(zone.margin, 25.0);
-            h.push_back(zone.activeBetween(alt, alt) ? (zone.margin - zone.signedDistance(x[X], x[Y])) / scale : -1.0);
-        }
+        const Vec hk = pathAt(x, u);
+        h.insert(h.end(), hk.begin(), hk.end());
     }
     return h;
 }
@@ -198,10 +168,14 @@ std::vector<TrapezoidalUF::PathConstraint> TrapezoidalUF::pathSummary(const Vec&
     return out;
 }
 
+namespace {
+constexpr int kSmoothStates[] = {GAMMA, MU}; // attitude-like states whose increments are penalised
+}
+
 double TrapezoidalUF::cost(const Vec& z) const {
     const double a = mission_.alpha, tf = z[idxTf()];
     const double dt = tf / (N_ - 1);
-    double energy = 0.0, smooth = 0.0;
+    double energy = 0.0, smooth = 0.0, smoothState = 0.0;
     for (int k = 0; k < N_ - 1; ++k) {
         const double Tm = 0.5 * (z[idxControl(k, THRUST)] + z[idxControl(k + 1, THRUST)]);
         const double Vm = 0.5 * (z[idxState(k, V)] + z[idxState(k + 1, V)]);
@@ -210,14 +184,19 @@ double TrapezoidalUF::cost(const Vec& z) const {
             const double du = (z[idxControl(k + 1, j)] - z[idxControl(k, j)]) / scales_.u[j];
             smooth += du * du;
         }
+        for (int i : kSmoothStates) {
+            const double dx = (z[idxState(k + 1, i)] - z[idxState(k, i)]) / scales_.x[i];
+            smoothState += dx * dx;
+        }
     }
-    return (1.0 - a) * tf / scales_.tf + a * energy / energyRef_ + mission_.betaControl * smooth / (N_ - 1);
+    return (1.0 - a) * tf / scales_.tf + a * energy / energyRef_ +
+           (mission_.betaControl * smooth + mission_.betaState * smoothState) / (N_ - 1);
 }
 
 Vec TrapezoidalUF::costGradient(const Vec& z) const {
     const double a = mission_.alpha, tf = z[idxTf()];
     const double dt = tf / (N_ - 1);
-    const double wReg = mission_.betaControl / (N_ - 1);
+    const double wReg = mission_.betaControl / (N_ - 1), wState = mission_.betaState / (N_ - 1);
     Vec g(numVariables(), 0.0);
 
     double sumTV = 0.0;
@@ -236,6 +215,12 @@ Vec TrapezoidalUF::costGradient(const Vec& z) const {
             const double d = 2.0 * wReg * (z[idxControl(k + 1, j)] - z[idxControl(k, j)]) / (s * s);
             g[idxControl(k + 1, j)] += d;
             g[idxControl(k, j)] -= d;
+        }
+        for (int i : kSmoothStates) {
+            const double s = scales_.x[i];
+            const double d = 2.0 * wState * (z[idxState(k + 1, i)] - z[idxState(k, i)]) / (s * s);
+            g[idxState(k + 1, i)] += d;
+            g[idxState(k, i)] -= d;
         }
     }
     g[idxTf()] = (1.0 - a) / scales_.tf + a * sumTV / ((N_ - 1) * energyRef_);

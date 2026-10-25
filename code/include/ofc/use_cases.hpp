@@ -1,6 +1,6 @@
 #pragma once
-// Public use cases. Each one reads a JSON case file (see data/cases/) and
-// prints a report; UC-03 and UC-04 also write CSV files for plotting.
+// Public use cases. Each one reads a JSON case file (see data/cases/),
+// prints a report and, from UC-03 on, writes CSV files for plotting.
 //
 //   UC-01  Aircraft report      derived performance of a generic aircraft
 //   UC-02  Trim                 steady flight, point mass (UF) and rigid body (FC)
@@ -13,6 +13,10 @@
 //                               trade-off and evaluation in the NLP
 //   UC-07  Constrained missions no-fly zones and waypoints: Hybrid A* path,
 //                               L1 guidance for UF and FC, NFZ rows in the NLP
+//   UC-08  Optimal missions     warm start -> UF -> FC optimisation with IPOPT,
+//                               verified and exported (needs IPOPT)
+//   UC-09  Warm-start benchmark cold start vs warm start, direct FC vs
+//                               UF -> FC, on the same missions (needs IPOPT)
 
 #include <string>
 
@@ -27,6 +31,8 @@ int transcriptionCheck(const nlohmann::json& c);
 int designCharts(const nlohmann::json& c);
 int designScenarios(const nlohmann::json& c);
 int missionScenarios(const nlohmann::json& c);
+int optimalMissions(const nlohmann::json& c);
+int warmStartBenchmark(const nlohmann::json& c);
 
 // Dispatches on the "use_case" field. Returns the process exit code.
 int run(const std::string& casePath);

@@ -33,4 +33,12 @@ void writeCsv(const std::string& path, const std::vector<std::string>& header, c
     }
 }
 
+void writeJson(const std::string& path, const nlohmann::json& j) {
+    const std::filesystem::path p(path);
+    if (p.has_parent_path()) std::filesystem::create_directories(p.parent_path());
+    std::ofstream out(p);
+    if (!out) throw std::runtime_error("cannot write " + path);
+    out << j.dump(2) << '\n';
+}
+
 } // namespace ofc::io
