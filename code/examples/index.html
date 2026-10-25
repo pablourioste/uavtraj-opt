@@ -1,0 +1,2027 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+        <meta name="description" content="Minimum-time / minimum-fuel trajectory optimisation with a Hybrid A* warm start (BSc thesis, UPC – ESEIAAT)">
+      
+      
+      
+      
+        <link rel="prev" href="../use-cases/">
+      
+      
+        <link rel="next" href="../aircraft-format/">
+      
+      
+        
+      
+      
+      <link rel="icon" href="../../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.8.0">
+    
+    
+      
+        <title>Worked examples and design scenarios - Optimal 3D Trajectory Planning for a Fixed-Wing UAV</title>
+      
+    
+    
+      <link rel="stylesheet" href="../../assets/stylesheets/main.57a0d79d.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+    <script>__md_scope=new URL("../..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+  </head>
+  
+  
+    <body dir="ltr">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#worked-examples-and-design-scenarios" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+  
+
+<header class="md-header md-header--shadow" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href="../.." title="Optimal 3D Trajectory Planning for a Fixed-Wing UAV" class="md-header__button md-logo" aria-label="Optimal 3D Trajectory Planning for a Fixed-Wing UAV" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            Optimal 3D Trajectory Planning for a Fixed-Wing UAV
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              Worked examples and design scenarios
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+      <div class="md-header__source">
+        <a href="https://github.com/pablourioste/uavtraj-opt" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"/></svg>
+  </div>
+  <div class="md-source__repository">
+    GitHub
+  </div>
+</a>
+      </div>
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+
+<nav class="md-nav md-nav--primary" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href="../.." title="Optimal 3D Trajectory Planning for a Fixed-Wing UAV" class="md-nav__button md-logo" aria-label="Optimal 3D Trajectory Planning for a Fixed-Wing UAV" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    Optimal 3D Trajectory Planning for a Fixed-Wing UAV
+  </label>
+  
+    <div class="md-nav__source">
+      <a href="https://github.com/pablourioste/uavtraj-opt" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"/></svg>
+  </div>
+  <div class="md-source__repository">
+    GitHub
+  </div>
+</a>
+    </div>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../.." class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Home
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2" >
+        
+          
+          <label class="md-nav__link" for="__nav_2" id="__nav_2_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Project
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_2_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_2">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Project
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../01-problem/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    1. Problem and requirements
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../02-state-of-the-art/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    2. State of the art
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../03-methodology/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    3. Methodology
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../04-design-decisions/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    4. Design decisions
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3" >
+        
+          
+          <label class="md-nav__link" for="__nav_3" id="__nav_3_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Theory
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Theory
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../05-ocp-theory/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    5. OCP and NLP
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../06-dynamics-uf/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    6. Point-mass dynamics (UF)
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../07-dynamics-fc/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    7. Rigid-body dynamics (FC)
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../08-transcription/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    8. Transcription
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../09-constraints/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    9. Constraints
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../10-cost-function/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    10. Cost function
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../11-warm-start/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    11. Warm start pipeline
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4" >
+        
+          
+          <label class="md-nav__link" for="__nav_4" id="__nav_4_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Results
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_4_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_4">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Results
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../12-results-validation/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    12. Validation
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../13-results-penalties/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    13. Regularisation
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../14-results-warmstart/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    14. Warm-start benchmark
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../derivatives/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Derivatives: v1 and v2
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../15-conclusions/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    15. Conclusions
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+    
+  
+  
+  
+    
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_5" checked>
+        
+          
+          <label class="md-nav__link" for="__nav_5" id="__nav_5_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Code (public implementation)
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_5_label" aria-expanded="true">
+          <label class="md-nav__title" for="__nav_5">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Code (public implementation)
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Overview and quick start
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../architecture/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Architecture
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../formulation/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Formulation in code
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../use-cases/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Use cases
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+    
+  
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Worked examples and design scenarios
+  
+
+    
+  </span>
+  
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Worked examples and design scenarios
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#the-generic-aircraft" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        The generic aircraft
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#uc-08-optimal-missions" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        UC-08 — Optimal missions
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#uc-09-warm-start-benchmark" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        UC-09 — Warm-start benchmark
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#uc-07-missions-with-no-fly-zones-and-waypoints" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        UC-07 — Missions with no-fly zones and waypoints
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#uc-01-aircraft-report" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        UC-01 — Aircraft report
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#uc-02-trim" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        UC-02 — Trim
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#uc-03-open-loop-simulation" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        UC-03 — Open-loop simulation
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#uc-04-the-nlp-an-optimiser-sees" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        UC-04 — The NLP an optimiser sees
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#uc-05-design-charts" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        UC-05 — Design charts
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#uc-06-typical-design-scenarios" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        UC-06 — Typical design scenarios
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="UC-06 — Typical design scenarios">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#speed-trade-off-minimum-time-against-minimum-fuel" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Speed trade-off: minimum time against minimum fuel
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#the-scenarios-inside-the-nlp" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        The scenarios inside the NLP
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../aircraft-format/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Aircraft file format
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_6" >
+        
+          
+          <label class="md-nav__link" for="__nav_6" id="__nav_6_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Appendix
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_6_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_6">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Appendix
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../appendix-frames/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Coordinate frames
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../appendix-adjoint/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Adjoint method
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../appendix-msn012/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Aircraft MSN012
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../references/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    References
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#the-generic-aircraft" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        The generic aircraft
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#uc-08-optimal-missions" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        UC-08 — Optimal missions
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#uc-09-warm-start-benchmark" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        UC-09 — Warm-start benchmark
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#uc-07-missions-with-no-fly-zones-and-waypoints" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        UC-07 — Missions with no-fly zones and waypoints
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#uc-01-aircraft-report" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        UC-01 — Aircraft report
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#uc-02-trim" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        UC-02 — Trim
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#uc-03-open-loop-simulation" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        UC-03 — Open-loop simulation
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#uc-04-the-nlp-an-optimiser-sees" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        UC-04 — The NLP an optimiser sees
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#uc-05-design-charts" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        UC-05 — Design charts
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#uc-06-typical-design-scenarios" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        UC-06 — Typical design scenarios
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="UC-06 — Typical design scenarios">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#speed-trade-off-minimum-time-against-minimum-fuel" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Speed trade-off: minimum time against minimum fuel
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#the-scenarios-inside-the-nlp" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        The scenarios inside the NLP
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+  
+  
+
+
+<h1 id="worked-examples-and-design-scenarios">Worked examples and design scenarios</h1>
+<div class="admonition abstract">
+<p class="admonition-title">TL;DR</p>
+<p>All nine use cases run on the generic UAV. Headline result first, then the deeper ones:</p>
+<ul>
+<li><strong>Optimal missions (UC-08).</strong> Warm start → point-mass optimum → 6-DoF optimum converges with IPOPT in all four missions, in 0.5–1.5 s per stage (machine-dependent). The two optima agree to 0.2 % in fuel, every one passes an independent check of all its constraints, and the whole optimal path stays 9–12 m beyond every zone margin.</li>
+<li><strong>Warm-start benchmark (UC-09).</strong> On identical problems, a straight-line cold start still converges for this small aircraft. It needs up to 2× the iterations, though, and in one mission it ends in a worse local optimum (+3.9 % cost).</li>
+<li><strong>Missions with no-fly zones and waypoints (UC-07).</strong> Hybrid A* finds a flyable path in 0.01–2 s (machine-dependent). UF and FC fly it while staying 11–16 m outside every margin and passing within 1.1 m of each waypoint. The straight-line cold start runs 200–394 m deep into the zones.</li>
+<li>The design charts give a classic envelope: V_stall 15.1 m/s, best L/D at 20.8 m/s, V_max 36.9 m/s and a service ceiling of 5.9 km.</li>
+<li>The four typical scenarios (straight and level, climb, 180° turn, climb plus turn) are flown by both models. UF and FC agree to within 0.2–67 m, with the same fuel to 0.1 g.</li>
+<li>The climbs are power-limited, and the least-fuel speed (22 m/s) sits next to the best-L/D speed.</li>
+<li>The analytic Jacobian is 57–487× faster than forward differences, and the gap grows with N.</li>
+</ul>
+</div>
+<p>All numbers on this page come from <code>bash run.sh</code> in <code>code/</code>, using the case files in <code>code/data/cases/</code>. The figures are produced by <code>utils/plot_results.py</code>. Timings depend on the machine; the trends do not.</p>
+<div class="admonition note">
+<p class="admonition-title">What these results are and are not</p>
+<p>UC-08 and UC-09 are <strong>optimal trajectories</strong> of the public implementation with a generic aircraft: local optima of the collocated problems, solved with IPOPT. UC-06 and UC-07 are <strong>flyable reference trajectories</strong> produced by guidance laws; they are the warm starts of the optimisation. The thesis's own optimal solutions (with the real aircraft and the production solver) are in <a href="../../12-results-validation/">12. Validation</a> and <a href="../../14-results-warmstart/">14. Warm-start benchmark</a>.</p>
+</div>
+<h2 id="the-generic-aircraft">The generic aircraft</h2>
+<p>An 11 kg, 2.9 m-span UAV. Its mass, geometry, inertia, lift, side-force and moment derivatives follow the Aerosonde-class model of Beard &amp; McLain (2012). Its drag polar (<span class="arithmatex">\(C_{D0}=0.030\)</span>, <span class="arithmatex">\(k=0.055\)</span>), propulsion (800 W, <span class="arithmatex">\(\eta_p=0.7\)</span>, SFC 0.6 kg/kWh) and envelope limits are illustrative values chosen for this example. Data file: <code>code/data/aircraft/generic_uav.json</code> (<a href="../aircraft-format/">format</a>).</p>
+<h2 id="uc-08-optimal-missions">UC-08 — Optimal missions</h2>
+<div class="admonition tip">
+<p class="admonition-title">The headline result</p>
+<p>These optimised missions are the cover of the repository. The rest of this page goes deeper: the pipeline benchmark (UC-09), the warm starts themselves (UC-07), and from the aircraft report (UC-01) to the typical design scenarios (UC-06).</p>
+</div>
+<p>The four missions of UC-07, solved for <strong>minimum fuel</strong> (α = 1) with the full pipeline:</p>
+<ol>
+<li>The Hybrid A* path, flown by the UF guidance, seeds the point-mass problem (60 nodes).</li>
+<li>Its optimum, projected to 6-DoF states and controls, seeds the rigid-body problem (60 nodes).</li>
+<li>Both stages use β_c = β_s = 1 and coordinated flight (|β| ≤ 1°).</li>
+</ol>
+<div class="highlight"><pre><span></span><code>id     | WS[ms] | UF           it   t[ms]  tf[s] fuel_g pen% | FC           it   t[ms]  tf[s] fuel_g pen% | clrUF clrFC  wpUF  wpFC  simUF
+M-01   |    181 | solved      116     513  152.3    6.2    1 | acceptable   85     693  152.5    6.2    1 |     9     9     -     -   0.34
+M-02   |    459 | solved      115     581  178.4    7.4    1 | solved       90     764  178.7    7.4    1 |    11    11     -     -   0.38
+M-03   |     35 | solved      121     521  199.1    8.3    1 | solved      193    1539  199.2    8.3    1 |     -     -  40.0  40.0   0.89
+M-04   |    287 | solved      103     523  185.8   11.5    0 | acceptable  131    1155  186.6   11.5    0 |    12    12  35.2  35.3   0.62
+</code></pre></div>
+<figure>
+<p><img alt="Optimal missions" src="../../assets/figures/code/uc08_cover.png" width="100%" />
+  </p>
+<figcaption>Black: Hybrid A* path. Grey dash-dot: warm start flown by the guidance. Blue: point-mass optimum. Red dashed: 6-DoF optimum. Red: active no-fly zones, with their margin dotted.</figcaption>
+</figure>
+<div class="tabbed-set tabbed-alternate" data-tabs="1:4"><input checked="checked" id="__tabbed_1_1" name="__tabbed_1" type="radio" /><input id="__tabbed_1_2" name="__tabbed_1" type="radio" /><input id="__tabbed_1_3" name="__tabbed_1" type="radio" /><input id="__tabbed_1_4" name="__tabbed_1" type="radio" /><div class="tabbed-labels"><label for="__tabbed_1_1">M-01</label><label for="__tabbed_1_2">M-02</label><label for="__tabbed_1_3">M-03</label><label for="__tabbed_1_4">M-04</label></div>
+<div class="tabbed-content">
+<div class="tabbed-block">
+<p><img alt="M-01" src="../../assets/figures/code/uc08_M-01.png" /></p>
+</div>
+<div class="tabbed-block">
+<p><img alt="M-02" src="../../assets/figures/code/uc08_M-02.png" /></p>
+</div>
+<div class="tabbed-block">
+<p><img alt="M-03" src="../../assets/figures/code/uc08_M-03.png" /></p>
+</div>
+<div class="tabbed-block">
+<p><img alt="M-04" src="../../assets/figures/code/uc08_M-04.png" /></p>
+</div>
+</div>
+</div>
+<p>How to read the results:</p>
+<ul>
+<li><strong>Every stage converges and is verified.</strong> IPOPT reports <code>solved</code> or <code>acceptable</code> (converged to its acceptable tolerance). <code>nlp::verify</code> then finds no constraint or bound violated by more than 10⁻⁴ (rows are normalised).</li>
+<li><strong>Minimum fuel looks like it should.</strong> The aircraft slows from the commanded 25 m/s to about 21 m/s, its best-L/D speed (20.8 m/s, UC-05), and cruises there. It bleeds speed near the end because the final speed is free. It turns with gentle bank (under 15°), because a tighter turn costs induced drag. It passes the waypoints on their 40 m tolerance circle (M-03), because going closer would cost fuel.</li>
+<li><strong>The optimum shortens the planner's path.</strong> The paths are 3.20, 3.75, 4.15 and 3.91 km, against 3.20, 3.75, 4.31 and 3.92 km for the planned ones. The optima hug the zone corners, where the planner kept a safety distance.</li>
+<li><strong>The 6-DoF optimum confirms the point-mass one.</strong> Flight times differ by under 0.5 % and fuel by under 0.2 %, as they should for the same aircraft and polar. This needs <strong>coordinated flight</strong>. Without the sideslip limit, the FC optimum flew 15–27° sideways and used the side force as free lift (the linear polar has no sideslip drag), and appeared to burn 6–9 % less fuel than the point mass. See <a href="../formulation/#optimal-control-problems-srcformulationocp_cpp">Formulation in code</a>.</li>
+<li><strong>Smoothing is cheap.</strong> The smoothness terms are 0–1 % of the final cost, well under the 15 % rule of <a href="../../10-cost-function/">10. Cost function</a>. With almost none (β_c = 0.01, β_s = 0) the minimum-fuel point-mass optimum is bang-bang: thrust flips between 0 and 27 N, and the aircraft glides up to 63 m down and climbs back. With β_c = β_s = 1, the total variation of the UF thrust drops 24–39× (from 427–697 N to about 18 N). For FC, thrust variation drops 4–6× and the node-to-node bank oscillation 4–5×.</li>
+<li><strong>Clearance along the whole path.</strong> The zone rows hold at the nodes, but with an inflated margin <span class="arithmatex">\(\sqrt{m^2+(\ell/2)^2}\)</span> the straight segments between nodes also stay 9–12 m beyond the real margin. With the plain margin, the segments cut 8–18 m into it at the zone corners.</li>
+<li><strong>Discretisation error.</strong> An RK4 simulation of each interval, driven by the optimal controls, lands within 0.3–0.9 m of the next node. One open-loop simulation over the whole flight drifts by 10–70 m (<code>sim_drift_uf_m</code> in <code>summary.csv</code>), because heading and speed errors integrate. A tracking loop removes that drift in practice.</li>
+</ul>
+<h2 id="uc-09-warm-start-benchmark">UC-09 — Warm-start benchmark</h2>
+<p>The same four missions solved by four pipelines. Every pipeline solves exactly the same problems: scales, cost references and t_f bounds come from the mission, not from the seed.</p>
+<div class="highlight"><pre><span></span><code>id     pipeline   | WS[ms] | UF           it   t[ms] | FC           it   t[ms] |    total       J  tf[s] fuel_g
+M-01   COLD&gt;UF    |      0 | solved      118     543  | -                        |      543  0.3923  153.2   6.24
+M-01   WS&gt;UF      |    173 | solved      116     538  | -                        |      712  0.3898  152.3   6.21
+M-01   WS&gt;FC      |    170 | -                        | solved      102     855  |     1025  0.3911  152.6   6.21
+M-01   WS&gt;UF&gt;FC   |    167 | solved      116     538  | acceptable   85     704  |     1409  0.3911  152.5   6.21
+M-02   COLD&gt;UF    |      0 | solved      130     629  | -                        |      629  0.3961  178.5   7.36
+M-02   WS&gt;UF      |    443 | solved      115     577  | -                        |     1020  0.3961  178.4   7.36
+M-02   WS&gt;FC      |    437 | -                        | acceptable   92     815  |     1252  0.3973  178.7   7.36
+M-02   WS&gt;UF&gt;FC   |    435 | solved      115     590  | solved       90     788  |     1814  0.3973  178.7   7.36
+M-03   COLD&gt;UF    |      0 | solved      246    1157  | -                        |     1157  0.3816  199.4   8.38
+M-03   WS&gt;UF      |     38 | solved      121     571  | -                        |      609  0.3765  199.1   8.25
+M-03   WS&gt;FC      |     37 | -                        | solved      117     886  |      924  0.3774  199.2   8.26
+M-03   WS&gt;UF&gt;FC   |     37 | solved      121     519  | solved      193    1473  |     2029  0.3774  199.2   8.26
+M-04   COLD&gt;UF    |      0 | solved      124     625  | -                        |      626  0.6106  195.3  11.96
+M-04   WS&gt;UF      |    286 | solved      103     512  | -                        |      798  0.5877  185.8  11.55
+M-04   WS&gt;FC      |    292 | -                        | acceptable  130    1091  |     1384  0.5882  186.6  11.54
+M-04   WS&gt;UF&gt;FC   |    283 | solved      103     528  | acceptable  131    1125  |     1937  0.5882  186.6  11.54
+</code></pre></div>
+<p><img alt="Warm-start benchmark" src="../../assets/figures/code/uc09_benchmark.png" /></p>
+<p>How to read the results, against the thesis's claims (<a href="../../14-results-warmstart/">14. Warm-start benchmark</a>):</p>
+<ul>
+<li><strong>Seed quality.</strong> The warm start's largest collocation defect is 0.25–0.92 (normalised), against 3.0–3.7 for the cold start. The projected UF optimum gives the FC stage a defect of 3.0–3.6, against 11–36 for the run flown by the FC autopilot.</li>
+<li><strong>The cold start converges here, but it is worse.</strong> Unlike in the thesis, the straight-line cold start does not make the point-mass problem infeasible. That is a small, slow aircraft with large turn radii relative to the zones, and an exact defect Jacobian. It still needs more iterations (up to 2×, in M-03), and in M-04 it converges to a different, worse local optimum: 195 s and 11.96 g against 186 s and 11.55 g, +3.9 % cost.</li>
+<li><strong>The UF stage does not make the FC stage faster here.</strong> Seeded by the projected UF optimum or directly by the autopilot run, FC reaches the same optimum, and the solve-time difference is within ±20 % except in M-03. Unlike the thesis's direct seed, built by inverse dynamics, the autopilot run is a genuinely flown 6-DoF trajectory, already a good seed. The thesis's 1.2–4.4× FC speed-up is therefore <strong>not reproduced</strong> with this aircraft and this seed. What the UF stage does buy is a much cheaper exploration (0.5 s instead of 0.8–1.5 s) and a 6-DoF seed with 4–10× smaller defects.</li>
+<li><strong>Timings depend on the machine; iteration counts on the IPOPT version and linear solver.</strong> The tables come from IPOPT 3.11.9 (Linux). IPOPT 3.14.20 on Windows reaches the same optima to the printed digits, but its counts differ, by up to a factor of two (for example 193 against 99 iterations for the FC stage of M-03).</li>
+</ul>
+<h2 id="uc-07-missions-with-no-fly-zones-and-waypoints">UC-07 — Missions with no-fly zones and waypoints</h2>
+<p>These planned and flown trajectories are the warm starts of UC-08.</p>
+<p>These are the same families as the thesis benchmark (<a href="../../14-results-warmstart/">14. Warm-start benchmark</a>), scaled to the generic UAV: 25 m/s, 30° bank, and a planning radius of 143 m.</p>
+<table>
+<thead>
+<tr>
+<th>Mission</th>
+<th>Content</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>M-01</td>
+<td>One NFZ on the direct route</td>
+</tr>
+<tr>
+<td>M-02</td>
+<td>Slalom between two NFZs</td>
+</tr>
+<tr>
+<td>M-03</td>
+<td>Two waypoints, no NFZ</td>
+</tr>
+<tr>
+<td>M-04</td>
+<td>One NFZ, one waypoint, a 150 m climb and a final heading change; a low NFZ (top 200 m) on the direct route is overflown</td>
+</tr>
+</tbody>
+</table>
+<div class="highlight"><pre><span></span><code>id      mission                        | planMs   R[m]   path |   t_UF   t_FC |  clrUF  clrFC |   wpUF   wpFC |     |D|N    |D|4N |  nfzRun nfzCold
+M-01    One NFZ on the direct route    |    943    143   3204 |  128.0  128.0 |     11     11 |    0.0    0.0 |  1.5e-01  3.7e-03 |   -0.29   10.85
+M-02    Slalom between two NFZs        |   1782    143   3753 |  150.0  149.9 |     12     12 |    0.0    0.0 |  3.7e-01  9.7e-03 |   -0.30    6.01
+M-03    Waypoints only                 |     15    143   4311 |  172.4  172.2 |    n/a    n/a |    1.1    1.0 |  5.5e-01  1.4e-02 |     n/a     n/a
+M-04    NFZ, waypoint, climb; low NFZ  |   1370    143   3921 |  159.3  157.8 |     16     16 |    0.8    0.7 |  1.4e-01  4.4e-03 |   -0.40    8.90
+</code></pre></div>
+<figure>
+<p><img alt="Missions overview" src="../../assets/figures/code/uc07_missions_overview.png" width="100%" />
+  </p>
+<figcaption>Top views of the four missions. Red: active no-fly zones, with their margin dotted. Hatched grey: a zone below the flight altitude, overflown. Dotted grey: the straight-line cold start. Black: the Hybrid A* path. Blue and red dashed: the point-mass and 6-DoF trajectories. Green diamonds: waypoints, with their tolerance circle.</figcaption>
+</figure>
+<div class="tabbed-set tabbed-alternate" data-tabs="2:4"><input checked="checked" id="__tabbed_2_1" name="__tabbed_2" type="radio" /><input id="__tabbed_2_2" name="__tabbed_2" type="radio" /><input id="__tabbed_2_3" name="__tabbed_2" type="radio" /><input id="__tabbed_2_4" name="__tabbed_2" type="radio" /><div class="tabbed-labels"><label for="__tabbed_2_1">M-01 one NFZ</label><label for="__tabbed_2_2">M-02 slalom</label><label for="__tabbed_2_3">M-03 waypoints</label><label for="__tabbed_2_4">M-04 NFZ + waypoint + climb</label></div>
+<div class="tabbed-content">
+<div class="tabbed-block">
+<p><img alt="M-01" src="../../assets/figures/code/uc07_M-01.png" />
+The planner goes round the east side of the zone. Both models keep 11 m outside the 40 m margin (the planner's own safety distance is 10 m) and arrive on the final heading.</p>
+</div>
+<div class="tabbed-block">
+<p><img alt="M-02" src="../../assets/figures/code/uc07_M-02.png" />
+Two zones block opposite sides of the direct route, so the path weaves between them. The clearance plot touches the margin twice, once per zone, and never crosses it.</p>
+</div>
+<div class="tabbed-block">
+<p><img alt="M-03" src="../../assets/figures/code/uc07_M-03.png" />
+Each waypoint is reached heading towards the next target. Both models pass within 1.1 m of each waypoint against a 40 m tolerance.</p>
+</div>
+<div class="tabbed-block">
+<p><img alt="M-04" src="../../assets/figures/code/uc07_M-04.png" />
+The low zone (top at 200 m) is overflown, because the flight starts at 300 m and climbs to 450 m. The planner ignores it and the direct route crosses it legitimately. The high zone A is avoided, and the waypoint and the final easterly heading are met.</p>
+</div>
+</div>
+</div>
+<p>How to read the results:</p>
+<ul>
+<li><strong>The cold start would be infeasible.</strong> The straight line between the same end points gives NFZ rows of +6 to +11 in the NLP. With a 40 m margin that means 200–394 m inside the zones, or 240–434 m past the margin. The planned and flown trajectories give −0.3 to −0.4, so they are outside every margin. This is the same reason the thesis's cold start failed in its NFZ and waypoint scenarios. With this small aircraft, IPOPT still recovers from it, but more slowly and sometimes into a worse optimum (UC-09).</li>
+<li><strong>The planner is cheap, and the guidance holds the path.</strong> Planning takes 0.01–2 s, depending on the machine. UF and FC end with the same clearance to the metre, and it stays above the planner's safety distance, so the 0.8 bank fraction leaves enough room to track the path.</li>
+<li><strong>Mesh resolution.</strong> The flown trajectories satisfy the collocation equations to 0.14–0.55 on 80 nodes, and to 0.004–0.014 on 320 nodes. As in UC-06, the mesh must resolve the turns.</li>
+<li><strong>From flyable to optimal.</strong> A trajectory like this is the warm start that UC-08 hands to the UF and FC optimisation stages.</li>
+</ul>
+<h2 id="uc-01-aircraft-report">UC-01 — Aircraft report</h2>
+<div class="highlight"><pre><span></span><code>aero     : CL_max 1.405, k 0.0550, (L/D)max 12.31 at CL 0.739
+
+   h [m]        rho    V_stall    V_(L/D)  P_max [W] T_max@Vc [N]
+       0     1.2250      15.10      20.82        800         22.4
+    1000     1.1116      15.85      21.86        716         20.1
+    2000     1.0065      16.66      22.97        638         17.9
+    4000     0.8191      18.46      25.46        500         14.0
+
+min turn radius at V_cruise, phi_max: 76.0 m
+</code></pre></div>
+<h2 id="uc-02-trim">UC-02 — Trim</h2>
+<div class="highlight"><pre><span></span><code>condition: V 25.00 m/s, h 300 m, gamma 0.00 deg, mu 0.00 deg
+[UF] T 9.27 N, CL 0.5274, n 1.000 g, within limits: yes
+[FC] alpha 3.198 deg, theta 3.198 deg, delta_e -8.071 deg, T 9.25 N
+     Newton: 2 iterations, residual 9.50e-16, converged: yes
+</code></pre></div>
+<p>The two models need the same thrust (9.27 N against 9.25 N), because they share the lift and drag description. The small difference is the thrust component along the flight path, <span class="arithmatex">\(T\cos\alpha\)</span>, in the 6-DoF trim.</p>
+<h2 id="uc-03-open-loop-simulation">UC-03 — Open-loop simulation</h2>
+<div class="highlight"><pre><span></span><code>[UF] bank 30.0 deg after 60 s, heading change 764.6 deg, altitude change 0.01 m
+     expected steady turn radius 110.4 m
+[FC] doublet 2.0 deg: altitude band [299.7, 300.2] m, final theta 3.15 deg
+</code></pre></div>
+<figure>
+<p><img alt="UF turn" src="../../assets/figures/code/uc03_uf_turn.png" width="80%" />
+  </p>
+<figcaption>UF rolling into a 30° coordinated turn. The heading rate matches g·tanφ/V and the altitude stays constant.</figcaption>
+</figure>
+<figure>
+<p><img alt="FC doublet" src="../../assets/figures/code/uc03_fc_doublet.png" width="70%" />
+  </p>
+<figcaption>FC after an elevator doublet. The short-period mode is the fast α oscillation that dies out in about 1 s. The phugoid is the slow exchange between speed and altitude, with a period of about 12 s (theory: 2πV/(g√2) ≈ 11 s).</figcaption>
+</figure>
+<h2 id="uc-04-the-nlp-an-optimiser-sees">UC-04 — The NLP an optimiser sees</h2>
+<p>Straight 3.1 km leg with a 100 m climb, point-mass model, trapezoidal collocation:</p>
+<div class="highlight"><pre><span></span><code>    N    vars defects      nnz    dens% |    |D|cold    |D|trim |  J_an[ms]  J_fd[ms]  speedup |   jac err
+   25     276     192     1872     3.53 |   7.76e+00   1.65e-15 |     0.098      5.54      57x |   6.5e-11
+   50     551     392     3822     1.77 |   3.80e+00   1.08e-15 |     0.180     20.69     115x |   8.1e-11
+  100    1101     792     7722     0.89 |   1.88e+00   3.99e-16 |     0.377    112.74     299x |   8.8e-11
+  200    2201    1592    15522     0.44 |   9.36e-01   2.65e-16 |     0.654    318.58     487x |   7.7e-11
+</code></pre></div>
+<figure>
+<p><img alt="Jacobian cost and seed quality" src="../../assets/figures/code/uc04_jacobian_and_seed.png" width="90%" />
+  </p>
+<figcaption>Left: cost of one defect Jacobian. Right: seed quality of a cold start against a trimmed straight line.</figcaption>
+</figure>
+<ul>
+<li><strong>Derivatives.</strong> Forward differences need one full evaluation of the defects per decision variable, so their cost grows as O(N²). The sparse analytic Jacobian grows as O(N). Both agree to about 1e-10. This is the mechanism behind the speed-up between the two versions of the thesis solver: the published results were computed with finite differences, and a later version uses exact derivatives.</li>
+<li><strong>Seed quality.</strong> A cold start (straight line, zero controls) violates the dynamics by O(1). A trimmed line satisfies them to machine precision. That gap is why an interior-point solver started cold spends so many iterations in restoration (see <a href="../../11-warm-start/">11. Warm start</a>).</li>
+<li><strong>Sparsity.</strong> At N = 200 only 0.44 % of the Jacobian entries are nonzero (<a href="../architecture/#decision-vector-layout-trapezoidaluf">spy plot</a>).</li>
+</ul>
+<h2 id="uc-05-design-charts">UC-05 — Design charts</h2>
+<div class="highlight"><pre><span></span><code>mass 11.00 kg, service ceiling (0.5 m/s) 5907 m, absolute ceiling 7005 m
+
+  h [m]   V_stall    V_minP   V_(L/D)     V_max   ROC_max   @V [m/s]
+      0     15.10     15.84     20.82     36.89      3.71      15.84
+   2000     16.66     17.47     22.97     35.80      2.51      17.47
+   4000     18.46     19.32     25.46     34.02      1.43      19.32
+   6000     20.57     21.54     28.37     30.24      0.46      21.54
+</code></pre></div>
+<figure>
+<p><img alt="Design charts" src="../../assets/figures/code/uc05_design_charts.png" width="100%" />
+  </p>
+<figcaption>Design charts of the generic UAV.</figcaption>
+</figure>
+<p>How to read the four panels:</p>
+<ol>
+<li><strong>Power curves.</strong> Required power has its minimum at the best-endurance speed. It crosses the available power (dashed, falling with altitude) at the maximum level speed.</li>
+<li><strong>Flight envelope.</strong> Level flight is possible between the stall line and the power-limited maximum speed. The band closes at the absolute ceiling (≈ 7.0 km). V_NE never limits this aircraft because power runs out first. The best-endurance and best-range speeds (min power, best L/D) rise with altitude as 1/√σ.</li>
+<li><strong>6-DoF trim curves.</strong> The elevator needed to trim reaches the ±25° limit below about 17 m/s. <strong>Elevator authority, not stall, sets the minimum trimmed speed</strong> (V_stall = 15.3 m/s at 300 m). A slope of δ_e against V that is negative at low speed and flattens out is the signature of a statically stable aircraft. The 6-DoF and point-mass trim thrusts coincide (black and white dashed lines).</li>
+<li><strong>Level turns.</strong> Turn radius against bank. Dotted segments break a limit: C_L,max at 18 m/s beyond about 43° of bank, and power at 32 m/s beyond about 58°.</li>
+</ol>
+<h2 id="uc-06-typical-design-scenarios">UC-06 — Typical design scenarios</h2>
+<p>The same 2 × 2 design as the thesis's <a href="../../12-results-validation/">validation scenarios</a>: straight or 180° turn, level or +200 m climb. Each is flown at 25 m/s, with 30° of bank in turns and a 7.5° climb angle, by the point-mass model (UF, dynamic inversion) and the 6-DoF model (FC, autopilot).</p>
+<div class="highlight"><pre><span></span><code>id     scenario                 |   t_UF   t_FC dev[m] |  fuelUF  fuelFC | dh_end   bank |     |D|N    |D|4N | tightest       h | V*fuel
+SC-00  Straight, level          |  120.0  120.0    0.2 |  0.0066  0.0066 |   0.01    0.0 |  4.7e-08  1.5e-08 | v_ne      -0.375 |     22
+SC-01  Straight, climb +200 m   |  123.9  121.8   12.1 |  0.0116  0.0117 |  -0.31    0.0 |  1.5e-01  4.2e-03 | power      0.000 |     22
+SC-02  180 deg turn, level      |  100.0   99.8   15.5 |  0.0056  0.0056 |   0.01   30.8 |  5.9e-01  6.9e-02 | v_ne      -0.375 |     22
+SC-03  Climb +200 m and 180 deg |  104.4  101.3   66.8 |  0.0106  0.0107 |  -0.31   31.4 |  1.1e+00  1.6e-01 | power      0.000 |     22
+</code></pre></div>
+<figure>
+<p><img alt="Scenarios in 3D" src="../../assets/figures/code/uc06_scenarios_3d.png" width="100%" />
+  </p>
+<figcaption>The four design scenarios flown by the point-mass model (solid) and the 6-DoF model (dashed).</figcaption>
+</figure>
+<div class="tabbed-set tabbed-alternate" data-tabs="3:4"><input checked="checked" id="__tabbed_3_1" name="__tabbed_3" type="radio" /><input id="__tabbed_3_2" name="__tabbed_3" type="radio" /><input id="__tabbed_3_3" name="__tabbed_3" type="radio" /><input id="__tabbed_3_4" name="__tabbed_3" type="radio" /><div class="tabbed-labels"><label for="__tabbed_3_1">SC-00 straight, level</label><label for="__tabbed_3_2">SC-01 climb +200 m</label><label for="__tabbed_3_3">SC-02 180° turn, level</label><label for="__tabbed_3_4">SC-03 climb + 180° turn</label></div>
+<div class="tabbed-content">
+<div class="tabbed-block">
+<p><img alt="SC-00" src="../../assets/figures/code/uc06_SC-00.png" />
+The baseline. Both models stay at the trim point, and UF and FC are 0.2 m apart after 3 km.</p>
+</div>
+<div class="tabbed-block">
+<p><img alt="SC-01" src="../../assets/figures/code/uc06_SC-01.png" />
+Climbing at 7.5° needs more power than is available, so <strong>the power constraint is active</strong> (h = 0.000). The two models resolve the shortfall differently. UF holds the climb angle and bleeds airspeed. FC holds attitude and gives up a little climb angle. The fuel is the same (11.6 against 11.7 g).</p>
+</div>
+<div class="tabbed-block">
+<p><img alt="SC-02" src="../../assets/figures/code/uc06_SC-02.png" />
+FC loses about 3 m entering the turn while the autopilot builds up the extra lift (n = 1.15 g), then recovers. UF has no attitude dynamics, so it holds altitude exactly. The ground tracks differ by at most 15.5 m.</p>
+</div>
+<div class="tabbed-block">
+<p><img alt="SC-03" src="../../assets/figures/code/uc06_SC-03.png" />
+The hardest case: a power-limited climb that runs through a turn. UF slows to 22.6 m/s and turns tighter. FC keeps more speed and turns wider. This is the largest UF–FC difference (66.8 m), the same kind of model gap discussed in the thesis's UF–FC consistency check.</p>
+</div>
+</div>
+</div>
+<h3 id="speed-trade-off-minimum-time-against-minimum-fuel">Speed trade-off: minimum time against minimum fuel</h3>
+<p>Each scenario is flown again by the point-mass model at commanded speeds from 18 to 36 m/s:</p>
+<figure>
+<p><img alt="Speed trade-off" src="../../assets/figures/code/uc06_speed_trade.png" width="95%" />
+  </p>
+<figcaption>Left: fuel against flight time for each scenario as the speed changes (fast on the left; labelled points use the least fuel). Right: fuel relative to the minimum.</figcaption>
+</figure>
+<ul>
+<li><strong>The least-fuel speed is 22 m/s in every scenario</strong>, next to the best-L/D speed (21 m/s at 300 m). Fuel per metre is proportional to drag, which is lowest at best L/D. This is the minimum-fuel signature of the thesis (<span class="arithmatex">\(\alpha = 1\)</span>).</li>
+<li><strong>Flying fast costs fuel.</strong> At 36 m/s the level scenarios burn about 60 % more fuel to save about 40 % of the time. This is the curve the cost weight <span class="arithmatex">\(\alpha\)</span> of the <a href="../../10-cost-function/">Bolza cost</a> moves along.</li>
+<li><strong>Climbs flatten the curve.</strong> Part of the fuel goes into potential energy whatever the speed, and at high speed the climb becomes power-limited, so time stops improving.</li>
+</ul>
+<h3 id="the-scenarios-inside-the-nlp">The scenarios inside the NLP</h3>
+<p>Each UF trajectory is resampled on N = 60 and 4N = 240 uniform nodes and passed to <code>TrapezoidalUF</code> as a candidate solution:</p>
+<ul>
+<li><strong>Straight and level.</strong> The defect is at round-off level (≈ 1e-8), so the trajectory is dynamically consistent.</li>
+<li><strong>Manoeuvres.</strong> On 60 nodes (about 1.7 s spacing), the roll-in and pull-up transients, which last about 1 s, are not resolved, and the defect reaches O(0.1–1). Refining to 240 nodes cuts it by 7–36×. <strong>The mesh must resolve the fastest manoeuvre in the mission.</strong> The production solver chooses N automatically from the path length, which is why.</li>
+<li><strong>Constraints.</strong> Every path constraint is satisfied (h ≤ 0). The closest to its limit are the power constraint during climbs, which is active, and V_NE in level flight.</li>
+</ul>
+<p>A trajectory like this is exactly what a warm start hands to the optimiser (UC-08): flyable, nearly consistent with the collocation equations, and inside the envelope.</p>
+<p><a href="../use-cases/">← Use cases</a> · <a href="../aircraft-format/">Aircraft file format →</a></p>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+    
+      
+      <nav class="md-footer__inner md-grid" aria-label="Footer" >
+        
+          
+          <a href="../use-cases/" class="md-footer__link md-footer__link--prev" aria-label="Previous: Use cases">
+            <div class="md-footer__button md-icon">
+              
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+            </div>
+            <div class="md-footer__title">
+              <span class="md-footer__direction">
+                Previous
+              </span>
+              <div class="md-ellipsis">
+                Use cases
+              </div>
+            </div>
+          </a>
+        
+        
+          
+          <a href="../aircraft-format/" class="md-footer__link md-footer__link--next" aria-label="Next: Aircraft file format">
+            <div class="md-footer__title">
+              <span class="md-footer__direction">
+                Next
+              </span>
+              <div class="md-ellipsis">
+                Aircraft file format
+              </div>
+            </div>
+            <div class="md-footer__button md-icon">
+              
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M4 11v2h12l-5.5 5.5 1.42 1.42L19.84 12l-7.92-7.92L10.5 5.5 16 11z"/></svg>
+            </div>
+          </a>
+        
+      </nav>
+    
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      
+      <script id="__config" type="application/json">{"annotate": null, "base": "../..", "features": ["navigation.sections", "navigation.footer", "content.code.copy"], "search": "../../assets/javascripts/workers/search.a7633da7.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+    
+    
+      <script src="../../assets/javascripts/bundle.c21346df.min.js"></script>
+      
+        <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+      
+    
+  </body>
+</html>
