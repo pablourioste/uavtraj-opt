@@ -130,4 +130,51 @@ For each mission the report gives:
 
 The program exits with code 2 if a path is not found or a check fails. Outputs per mission: `<id>_path.csv`, `<id>_uf.csv`, `<id>_fc.csv`, `<id>_nfz.csv` and `<id>_points.csv`, plus a `summary.csv`.
 
+## UC-08 — Optimal missions (needs IPOPT)
+
+```json
+{ "use_case": "UC-08", "aircraft": "...",
+  "pipeline": {
+    "seed": "warm", "stages": "UF>FC", "fc_from_uf": true,
+    "nodes_uf": 60, "nodes_fc": 60,
+    "alpha": 1.0, "beta_control": 1.0, "beta_state": 1.0, "sideslip_max_deg": 1.0, "verify_tol": 1e-4,
+    "planner": { "cell_m": 20, "heading_bins": 72, "step_m": 30, "bank_fraction": 0.8, "safety_m": 10 },
+    "solver": { "tol": 1e-6, "acceptable_tol": 1e-4, "max_iter": 1500, "max_cpu_time_s": 120, "print_level": 0 } },
+  "missions": [ ... same format as UC-07 ... ],
+  "output": "output/uc08" }
+```
+
+| Key | Meaning | Default |
+|---|---|---|
+| `seed` | `warm` (Hybrid A\* path flown by the guidance) or `cold` (straight line) | `warm` |
+| `stages` | `UF>FC`, `UF` or `FC` | `UF>FC` |
+| `fc_from_uf` | seed FC with the projected UF optimum; otherwise with the run flown by the FC autopilot | true |
+| `nodes_uf`, `nodes_fc` | collocation nodes of each stage | 60 |
+| `alpha` | 0 = minimum time, 1 = minimum fuel | 1 |
+| `beta_control`, `beta_state` | smoothness weights on control and attitude increments | 1, 1 |
+| `sideslip_max_deg` | sideslip limit of the FC problem (coordinated flight) | 1 |
+| `verify_tol` | tolerance of the post-solve verification (rows are normalised) | 1e-4 |
+| `solver` | IPOPT options: `tol`, `acceptable_tol`, `constr_viol_tol`, `max_iter`, `max_cpu_time_s`, `print_level`, `mu_strategy`, `lbfgs_history`, `linear_solver`, `derivative_test` | as shown |
+
+For each mission the report gives:
+
+- the warm-start time;
+- for each stage: IPOPT status, iterations, solve time, flight time, fuel and the share of the cost due to smoothing;
+- the smallest clearance beyond any zone's margin along the optimal paths (segments between nodes included);
+- the largest waypoint miss;
+- the local integration error of the UF optimum.
+
+A converged stage whose verification fails is marked with `!` and its worst violated row is printed. Without IPOPT the case prints a notice and exits with code 0. Outputs per mission: `<id>_ws.csv` (warm start on the UF nodes), `<id>_uf.csv`, `<id>_fc.csv`, `<id>_path.csv`, `<id>_nfz.csv` and `<id>_points.csv`, plus `summary.csv` and `report.json` (every stage's status, IPOPT return code, seed, iterations, time, objective, initial defect, penalty share and verification summary).
+
+## UC-09 — Warm-start benchmark (needs IPOPT)
+
+```json
+{ "use_case": "UC-09", "aircraft": "...",
+  "pipelines": ["COLD>UF", "WS>UF", "WS>FC", "WS>UF>FC"], "repeats": 1,
+  "pipeline": { ... as UC-08, seed and stages are set by each label ... },
+  "missions": [ ... ], "output": "output/uc09" }
+```
+
+Each label is a seed (`WS` or `COLD`) followed by the stages. Every pipeline solves exactly the same problems: scales, cost references and t_f bounds come from the mission, never from the seed (only the node each waypoint is pinned to follows the initial point). With `repeats` > 1 the fastest run is kept. Outputs: `benchmark.csv` and `benchmark.json`.
+
 [← Formulation in code](formulation.md) · [Next: Worked examples →](examples.md)

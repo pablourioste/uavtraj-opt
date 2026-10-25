@@ -7,37 +7,45 @@
 [![code](https://github.com/pablourioste/uavtraj-opt/actions/workflows/code.yml/badge.svg)](https://github.com/pablourioste/uavtraj-opt/actions/workflows/code.yml)
 
 <p align="center">
-  <img src="docs/assets/figures/code/uc07_cover.png" width="100%" alt="Four missions planned around no-fly zones and through waypoints, flown by a point-mass and a 6-DoF model">
+  <img src="docs/assets/figures/code/uc08_cover.png" width="100%" alt="Four minimum-fuel missions around no-fly zones and through waypoints, optimised with IPOPT for a point-mass and a 6-DoF model">
 </p>
-<p align="center"><sub>Four missions planned around no-fly zones and through waypoints, then flown by a point-mass and a 6-DoF model of a generic UAV, using the public code in this repository. The dotted straight line is what a cold start would try: it crosses the zones.</sub></p>
+<p align="center"><sub>Four minimum-fuel missions of a generic UAV, optimised with IPOPT by the public code in this repository: a Hybrid A* path flown by guidance laws (grey) seeds the point-mass optimum (blue), which seeds the 6-DoF optimum (red dashed).</sub></p>
 
 > Bachelor's thesis (Universitat Politècnica de Catalunya – ESEIAAT) developed with **CIMNE** and in collaboration with **Singular Aircraft**.
 > Minimum-time / minimum-fuel 3D trajectory optimisation for a fixed-wing UAV, accelerated by a Hybrid A\* warm start.
 
-## Missions around no-fly zones
+## Optimal missions around no-fly zones
 
-The cover shows the front end of the method: a Hybrid A\* planner finds a flyable path around the active no-fly zones and through the waypoints, and both aircraft models fly it in closed loop. All four missions use a generic UAV at 25 m/s with 30° of bank, which gives a planning turn radius of 143 m.
+The cover runs the whole method end to end on a generic UAV:
 
-| Mission | Setting | Planned path | Flight time UF / FC | Clearance beyond the 40 m margin | Waypoint miss | Straight-line cold start |
-|---|---|---:|---:|---:|---:|---|
-| M-01 | One no-fly zone on the direct route | 3.20 km | 128.0 / 128.0 s | 11 / 11 m | – | 394 m inside the zone |
-| M-02 | Slalom between two zones | 3.75 km | 150.0 / 149.9 s | 12 / 12 m | – | 200 m inside a zone |
-| M-03 | Two waypoints | 4.31 km | 172.4 / 172.2 s | – | 1.1 / 1.0 m | – |
-| M-04 | Zone + waypoint + 150 m climb; a low zone is overflown | 3.92 km | 159.3 / 157.8 s | 16 / 16 m | 0.8 / 0.7 m | 316 m inside the zone |
+1. A **Hybrid A\*** planner finds a flyable path around the active no-fly zones and through the waypoints, and guidance laws fly it with both aircraft models.
+2. That flown trajectory seeds the **point-mass (UF) optimal-control problem**, solved with **IPOPT**.
+3. The UF optimum is projected to 6-DoF states and controls and seeds the **rigid-body (FC) problem**, solved with IPOPT.
+4. Every optimum is re-checked against all its constraints and bounds outside the solver.
 
-- **Every mission is flown clear of every zone.** Both models stay outside each zone's margin, and every waypoint is passed well inside its 40 m tolerance.
-- **The cold start would be infeasible.** A straight line between the same end points runs 200–394 m deep into a zone. This is why the thesis's cold-start solver failed in its no-fly-zone and waypoint scenarios.
-- **Altitude bands are respected.** In M-04, a zone that tops out at 200 m is legitimately overflown while the aircraft climbs from 300 m.
+| Mission | Setting | Optimal path | Flight time UF / FC | Fuel UF / FC | Clearance beyond the 40 m margin | Waypoint miss (tolerance 40 m) | IPOPT iterations UF / FC |
+|---|---|---:|---:|---:|---:|---:|---:|
+| M-01 | One no-fly zone on the direct route | 3.20 km | 152.3 / 152.5 s | 6.21 / 6.21 g | 9 / 9 m | – | 116 / 85 |
+| M-02 | Slalom between two zones | 3.75 km | 178.4 / 178.7 s | 7.36 / 7.36 g | 11 / 11 m | – | 115 / 90 |
+| M-03 | Two waypoints | 4.15 km | 199.1 / 199.2 s | 8.25 / 8.26 g | – | 40 / 40 m | 121 / 193 |
+| M-04 | Zone + waypoint + 150 m climb; a low zone is overflown | 3.91 km | 185.8 / 186.6 s | 11.55 / 11.54 g | 12 / 12 m | 35 / 35 m | 103 / 131 |
+
+- **Every stage converges and passes the independent verification**: dynamics, boundary conditions, envelope, zones and bounds.
+- **The whole optimal path stays clear of every zone.** The clearance is measured along the segments between nodes, not only at the nodes.
+- **Both models agree.** Point-mass and 6-DoF optima differ by under 0.5 % in flight time and 0.2 % in fuel, as they should for the same aircraft, provided the 6-DoF model flies coordinated (see [Worked examples → UC-08](docs/code/examples.md#uc-08--optimal-missions)).
+- **Minimum fuel is physically sensible.** The aircraft slows from 25 m/s to about 21 m/s, its best lift-to-drag speed, and bleeds speed before arrival. It passes the waypoints on their tolerance circle, because going closer costs fuel.
+- **Each stage solves in about 0.5–1.5 s** on a laptop with 60 nodes (machine-dependent).
 
 ```bash
-cd code && bash run.sh                                       # build, 25 tests, all 7 use cases, figures
-./build/ofc data/cases/uc07_nfz_missions.json                # just these missions   (Windows: .\run.ps1)
+sudo apt install coinor-libipopt-dev pkg-config              # IPOPT (Linux / WSL); optional
+cd code && bash run.sh                                       # build, tests, all 9 use cases, figures
+./build/ofc data/cases/uc08_optimal_missions.json            # just these missions
 ```
 
-These trajectories are flyable reference paths, the kind of warm start the thesis hands to its optimiser. They are not optimal trajectories: the optimiser itself is not part of the public code. Full walk-through: [Worked examples → UC-07](docs/code/examples.md#uc-07--missions-with-no-fly-zones-and-waypoints).
+On Windows PowerShell, `.\utils\install_ipopt.ps1` installs the official IPOPT binaries once, and `.\run.ps1` then builds with Visual Studio. Without IPOPT, everything else still builds and runs, and the two optimisation use cases are skipped. Iteration counts in the table are from IPOPT 3.11.9 on Linux; 3.14 on Windows reaches the same optima in slightly different counts.
 
 > [!IMPORTANT]
-> **Why the full solver code is not in this repository.** This work was designed exclusively as a product for [Singular Aircraft](https://singularaircraft.com/inicio). For privacy and confidentiality reasons towards the company, the complete software repository cannot be shared. What **can** be shared is the knowledge behind it: the research, the mathematical methods (formulations, constraints, cost functions, warm-start strategy) and how they are applied in code. That is what this repository contains, plus a **restricted, clean-room public edition of the code** in [`code/`](code/). It was rewritten from the thesis equations and uses a generic aircraft. It leaves out the optimiser and the production-only features (terrain, geofences, real aircraft data).
+> **What the code in this repository is.** The thesis solver was designed exclusively as a product for [Singular Aircraft](https://singularaircraft.com/inicio). For privacy and confidentiality reasons towards the company, its software repository is not shared, and nothing from it is here. What this repository shares is the knowledge behind it (research, formulations, constraints, cost functions, warm-start strategy) and a **clean-room implementation** in [`code/`](code/). That implementation was written from the thesis equations, with its own structure, naming and settings, and a generic aircraft built from public data. It includes its own optimiser: collocation problems for both models, solved with IPOPT. Production-only features (terrain, geofences, real aircraft data, mission formats, autopilot export) are not included.
 
 📄 **Full thesis (PDF):** [`thesis/Optimal_3D_Trajectory_Planning_Thesis_Urioste.pdf`](thesis/Optimal_3D_Trajectory_Planning_Thesis_Urioste.pdf)
 
@@ -48,16 +56,19 @@ Below, from the missions above down to the thesis benchmark and the aircraft's d
 ### 1. Inside one mission
 
 <p align="center">
-  <img src="docs/assets/figures/code/uc07_M-04.png" width="100%" alt="Mission M-04 in detail: top view, altitude, bank and no-fly-zone clearance along the path">
+  <img src="docs/assets/figures/code/uc08_M-04.png" width="100%" alt="Mission M-04 in detail: top view and altitude, airspeed, bank and thrust of the warm start and of both optima">
 </p>
 
-M-04 in detail. Top view, then altitude (a 150 m climb), bank, and distance to the no-fly zones along the path, for the point-mass model (blue) and the 6-DoF model (red dashed). The clearance is smallest at the zone's corner, where it is still 16 m beyond the margin.
+M-04 in detail. The warm start (grey) climbs at once and cruises at the commanded 25 m/s. Both optima instead slow to about 21 m/s, spread the 150 m climb over the whole flight with a smooth thrust profile, and cut closer to the zone's corner than the planner's path. The two models time the climb differently but burn the same fuel: for this propulsion model the optimum is flat in when the climb happens.
 
 <p align="center">
-  <img src="docs/assets/figures/code/uc07_M-02.png" width="100%" alt="Mission M-02 in detail: slalom between two no-fly zones">
+  <img src="docs/assets/figures/code/uc09_benchmark.png" width="100%" alt="Warm-start benchmark: UF iterations from cold and warm starts, cost of the cold-start optimum, FC solve time seeded directly or through the UF optimum">
 </p>
 
-M-02 weaves between two zones that block opposite sides of the direct route. The clearance comes within 12 m of the margin once per zone, and never closer.
+The same missions solved by different pipelines, on identical problems (UC-09):
+
+- **Warm vs cold start.** From a straight-line cold start the point-mass problem still converges for this small aircraft, unlike in the thesis. But it needs up to twice the iterations, and in M-04 it ends in a worse local optimum: 195 s and 11.96 g against 186 s and 11.55 g.
+- **Seeding the 6-DoF stage.** Seeding FC with the UF optimum, or directly with the 6-DoF trajectory flown by the autopilot, reaches the same optimum. The time difference is mixed here, because the flown 6-DoF trajectory is already a much better seed than the thesis's inverse-dynamics guess.
 
 ### 2. The thesis solver: what the warm start buys
 
@@ -124,13 +135,13 @@ Details: [Conclusions](docs/15-conclusions.md) · [Benchmark](docs/14-results-wa
 
 ### 4. The aircraft and the formulation in the public code
 
-[`code/`](code/) is a C++17 implementation with no external dependencies. It contains:
+[`code/`](code/) is a C++17 implementation; IPOPT is its only optional dependency. It contains:
 
 - a generic aircraft defined in JSON (design parameters and aerodynamic coefficients);
 - the point-mass (UF) and 6-DoF (FC) models;
-- trapezoidal collocation with a sparse analytic Jacobian, envelope, boundary and no-fly-zone constraints, and the time–fuel cost;
-- trim, simulation and the aircraft's design charts;
-- four typical design scenarios and the four missions above.
+- trapezoidal collocation with a sparse constraint Jacobian; envelope, boundary, no-fly-zone and waypoint constraints; and the time–fuel cost with smoothness regularisation;
+- a warm-start chain (Hybrid A\* → guidance laws → UF → FC projection) and a staged optimisation pipeline with IPOPT and independent verification;
+- trim, simulation, the aircraft's design charts, four typical design scenarios, the four missions above and a warm-start benchmark.
 
 <p align="center">
   <img src="docs/assets/figures/code/uc06_scenarios_3d.png" width="95%" alt="Typical design scenarios flown by the point-mass and 6-DoF models">
@@ -138,6 +149,8 @@ Details: [Conclusions](docs/15-conclusions.md) · [Benchmark](docs/14-results-wa
 
 | Example | Result with the generic UAV |
 |---|---|
+| Optimal missions (UC-08) | WS → UF → FC converges in all four missions, 0.5–1.5 s per stage; UF and FC optima agree to 0.2 % in fuel; 9–12 m beyond every margin along the whole path |
+| Warm-start benchmark (UC-09) | cold starts converge but need up to 2× the iterations and can end in worse local optima (+3.9 % cost in M-04) |
 | Missions with NFZs and waypoints (UC-07) | Hybrid A\* plans around the zones in 0.01–2 s (machine-dependent); UF and FC stay 11–16 m outside every margin and pass within 1.1 m of each waypoint, while the straight-line cold start runs 200–394 m into the zones |
 | Design scenarios SC-00…SC-03 (UC-06) | UF and FC agree to within 0.2–67 m with the same fuel; climbs are power-limited; least fuel at 22 m/s, next to best L/D |
 | Design charts (UC-05) | V_stall 15.1 m/s, best L/D at 20.8 m/s, V_max 36.9 m/s, service ceiling 5.9 km; elevator authority (not stall) sets the minimum trimmed speed |
@@ -148,6 +161,25 @@ Details: [Conclusions](docs/15-conclusions.md) · [Benchmark](docs/14-results-wa
 </p>
 
 Walk-through with every output and figure: [Worked examples and design scenarios](docs/code/examples.md).
+
+## Run it with your own aircraft and mission
+
+From scratch, in four steps (full guide: [code/README.md](code/README.md#run-your-own-aircraft-and-mission)):
+
+1. **Build.** You need CMake ≥ 3.14 and a C++17 compiler; for the optimiser, also IPOPT (`sudo apt install coinor-libipopt-dev pkg-config` on Linux / WSL). Run `cd code && bash run.sh -t` to build and run the tests; `./build/ofc --info` says whether the optimiser is in.
+2. **Describe your aircraft.** Copy `code/data/aircraft/generic_uav.json` to `my_uav.json` and enter its mass, geometry, inertia, propulsion, envelope, actuator limits and aerodynamic derivatives. The loader rejects missing or inconsistent values. [UC-01](code/data/cases/uc01_aircraft_report.json) and [UC-05](code/data/cases/uc05_design_charts.json) print its performance and design charts.
+3. **Write the mission and the optimisation settings.** Copy [uc08_optimal_missions.json](code/data/cases/uc08_optimal_missions.json). For each mission give the start and end poses, altitude, climb and speed, no-fly zones (polygon `[north, east]` in metres, altitude band, margin) and waypoints (position, tolerance). The `pipeline` block sets the objective (minimum time … minimum fuel), the nodes, the stages, the smoothing weights and the IPOPT options.
+4. **Run.** `./build/ofc data/cases/my_mission.json`, then `python utils/plot_results.py`. You get the warm start, the UF and FC optima, a verification report per stage, CSV files and figures.
+
+| Where is… | File |
+|---|---|
+| the dynamics | [point_mass.cpp](code/src/model/point_mass.cpp) (UF, with analytic Jacobian), [rigid_body.cpp](code/src/model/rigid_body.cpp) (FC) |
+| the optimal-control problems | [ocp_problem.cpp](code/src/formulation/ocp_problem.cpp) (constraint vector and sparse Jacobian), [ocp_uf.cpp](code/src/formulation/ocp_uf.cpp), [ocp_fc.cpp](code/src/formulation/ocp_fc.cpp), [collocation.cpp](code/src/formulation/collocation.cpp) (defects) |
+| the IPOPT call | `nlp::solve` in [ipopt_solver.cpp](code/src/solver/ipopt_solver.cpp) |
+| the sequence of the optimisation | `pipeline::run` in [pipeline.cpp](code/src/pipeline/pipeline.cpp) |
+| the warm start | [warm_start.cpp](code/src/warmstart/warm_start.cpp), [planner.cpp](code/src/planning/planner.cpp) |
+
+How to add new kinds of environment constraints: [Inserting environment constraints](code/README.md#inserting-environment-constraints).
 
 ## Documentation
 
@@ -167,18 +199,18 @@ Browse locally with `pip install mkdocs-material && mkdocs serve`, or online at 
 ├── thesis/        full thesis (PDF)
 ├── docs/          chapter-by-chapter write-up (MkDocs) + figures in docs/assets/
 │   └── code/      documentation of the public code edition
-├── code/          public C++17 edition: generic aircraft, models, formulation, planner, examples
+├── code/          C++17 implementation: generic aircraft, models, planner, optimisation (IPOPT), examples
 └── results/       aggregated benchmark table (CSV) + column dictionary
 ```
 
 ## Tech stack
 
 Thesis solver: Python · CasADi · IPOPT (MA57 / MUMPS) · C++17 (production port) · Linux.
-Public edition: C++17 · CMake · nlohmann/json · Python + Matplotlib for the figures. Documentation: MkDocs.
+Public code: C++17 · CMake · IPOPT (optional, via pkg-config) · nlohmann/json · Python + Matplotlib for the figures. Documentation: MkDocs.
 
 ## About the code
 
-The production solver was designed exclusively as a product for **Singular Aircraft** and, for privacy reasons towards the company, it is **not** part of this repository. This repo shares the **knowledge**: the research, the mathematical methods and their application in code, documented through equations, diagrams, pseudocode, figures and results. On top of that it includes [`code/`](code/), a restricted public edition written from scratch from the thesis equations, with a generic aircraft and runnable examples. Its [scope](docs/code/index.md#scope) lists what is and is not included.
+The production solver was designed exclusively as a product for **Singular Aircraft** and, for privacy reasons towards the company, it is **not** part of this repository. This repo shares the **knowledge**: the research, the mathematical methods and their application in code, documented through equations, diagrams, pseudocode, figures and results. On top of that it includes [`code/`](code/), an independent implementation written from scratch from the thesis equations, with a generic aircraft, its own optimisation pipeline and runnable examples. Its [scope](docs/code/index.md#scope) lists what is and is not included.
 
 ## Author & citation
 

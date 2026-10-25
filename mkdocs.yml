@@ -48,7 +48,7 @@ nav:
       - 14. Warm-start benchmark: 14-results-warmstart.md
       - "Derivatives: v1 and v2": derivatives.md
       - 15. Conclusions: 15-conclusions.md
-  - Code (public edition):
+  - Code (public implementation):
       - Overview and quick start: code/index.md
       - Architecture: code/architecture.md
       - Formulation in code: code/formulation.md

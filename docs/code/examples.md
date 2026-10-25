@@ -1,8 +1,10 @@
 # Worked examples and design scenarios
 
 !!! abstract "TL;DR"
-    All seven use cases run on the generic UAV. Headline result first, then the deeper ones:
+    All nine use cases run on the generic UAV. Headline result first, then the deeper ones:
 
+    - **Optimal missions (UC-08).** Warm start → point-mass optimum → 6-DoF optimum converges with IPOPT in all four missions, in 0.5–1.5 s per stage (machine-dependent). The two optima agree to 0.2 % in fuel, every one passes an independent check of all its constraints, and the whole optimal path stays 9–12 m beyond every zone margin.
+    - **Warm-start benchmark (UC-09).** On identical problems, a straight-line cold start still converges for this small aircraft. It needs up to 2× the iterations, though, and in one mission it ends in a worse local optimum (+3.9 % cost).
     - **Missions with no-fly zones and waypoints (UC-07).** Hybrid A\* finds a flyable path in 0.01–2 s (machine-dependent). UF and FC fly it while staying 11–16 m outside every margin and passing within 1.1 m of each waypoint. The straight-line cold start runs 200–394 m deep into the zones.
     - The design charts give a classic envelope: V_stall 15.1 m/s, best L/D at 20.8 m/s, V_max 36.9 m/s and a service ceiling of 5.9 km.
     - The four typical scenarios (straight and level, climb, 180° turn, climb plus turn) are flown by both models. UF and FC agree to within 0.2–67 m, with the same fuel to 0.1 g.
@@ -12,16 +14,94 @@
 All numbers on this page come from `bash run.sh` in `code/`, using the case files in `code/data/cases/`. The figures are produced by `utils/plot_results.py`. Timings depend on the machine; the trends do not.
 
 !!! note "What these results are and are not"
-    These are **flyable reference trajectories** produced by a guidance law, together with design charts. They are **not optimal trajectories**: the optimiser is not part of the public edition. The optimal solutions of the thesis (with the real aircraft) are in [12. Validation](../12-results-validation.md) and [14. Warm-start benchmark](../14-results-warmstart.md).
+    UC-08 and UC-09 are **optimal trajectories** of the public implementation with a generic aircraft: local optima of the collocated problems, solved with IPOPT. UC-06 and UC-07 are **flyable reference trajectories** produced by guidance laws; they are the warm starts of the optimisation. The thesis's own optimal solutions (with the real aircraft and the production solver) are in [12. Validation](../12-results-validation.md) and [14. Warm-start benchmark](../14-results-warmstart.md).
 
 ## The generic aircraft
 
 An 11 kg, 2.9 m-span UAV. Its mass, geometry, inertia, lift, side-force and moment derivatives follow the Aerosonde-class model of Beard & McLain (2012). Its drag polar ($C_{D0}=0.030$, $k=0.055$), propulsion (800 W, $\eta_p=0.7$, SFC 0.6 kg/kWh) and envelope limits are illustrative values chosen for this example. Data file: `code/data/aircraft/generic_uav.json` ([format](aircraft-format.md)).
 
-## UC-07 — Missions with no-fly zones and waypoints
+## UC-08 — Optimal missions
 
 !!! tip "The headline result"
-    These missions are the cover of the repository. The rest of this page goes deeper: from the aircraft report (UC-01) to the typical design scenarios (UC-06).
+    These optimised missions are the cover of the repository. The rest of this page goes deeper: the pipeline benchmark (UC-09), the warm starts themselves (UC-07), and from the aircraft report (UC-01) to the typical design scenarios (UC-06).
+
+The four missions of UC-07, solved for **minimum fuel** (α = 1) with the full pipeline:
+
+1. The Hybrid A\* path, flown by the UF guidance, seeds the point-mass problem (60 nodes).
+2. Its optimum, projected to 6-DoF states and controls, seeds the rigid-body problem (60 nodes).
+3. Both stages use β_c = β_s = 1 and coordinated flight (|β| ≤ 1°).
+
+```text
+id     | WS[ms] | UF           it   t[ms]  tf[s] fuel_g pen% | FC           it   t[ms]  tf[s] fuel_g pen% | clrUF clrFC  wpUF  wpFC  simUF
+M-01   |    181 | solved      116     513  152.3    6.2    1 | acceptable   85     693  152.5    6.2    1 |     9     9     -     -   0.34
+M-02   |    459 | solved      115     581  178.4    7.4    1 | solved       90     764  178.7    7.4    1 |    11    11     -     -   0.38
+M-03   |     35 | solved      121     521  199.1    8.3    1 | solved      193    1539  199.2    8.3    1 |     -     -  40.0  40.0   0.89
+M-04   |    287 | solved      103     523  185.8   11.5    0 | acceptable  131    1155  186.6   11.5    0 |    12    12  35.2  35.3   0.62
+```
+
+<figure markdown>
+  ![Optimal missions](../assets/figures/code/uc08_cover.png){ width="100%" }
+  <figcaption>Black: Hybrid A* path. Grey dash-dot: warm start flown by the guidance. Blue: point-mass optimum. Red dashed: 6-DoF optimum. Red: active no-fly zones, with their margin dotted.</figcaption>
+</figure>
+
+=== "M-01"
+    ![M-01](../assets/figures/code/uc08_M-01.png)
+
+=== "M-02"
+    ![M-02](../assets/figures/code/uc08_M-02.png)
+
+=== "M-03"
+    ![M-03](../assets/figures/code/uc08_M-03.png)
+
+=== "M-04"
+    ![M-04](../assets/figures/code/uc08_M-04.png)
+
+How to read the results:
+
+- **Every stage converges and is verified.** IPOPT reports `solved` or `acceptable` (converged to its acceptable tolerance). `nlp::verify` then finds no constraint or bound violated by more than 10⁻⁴ (rows are normalised).
+- **Minimum fuel looks like it should.** The aircraft slows from the commanded 25 m/s to about 21 m/s, its best-L/D speed (20.8 m/s, UC-05), and cruises there. It bleeds speed near the end because the final speed is free. It turns with gentle bank (under 15°), because a tighter turn costs induced drag. It passes the waypoints on their 40 m tolerance circle (M-03), because going closer would cost fuel.
+- **The optimum shortens the planner's path.** The paths are 3.20, 3.75, 4.15 and 3.91 km, against 3.20, 3.75, 4.31 and 3.92 km for the planned ones. The optima hug the zone corners, where the planner kept a safety distance.
+- **The 6-DoF optimum confirms the point-mass one.** Flight times differ by under 0.5 % and fuel by under 0.2 %, as they should for the same aircraft and polar. This needs **coordinated flight**. Without the sideslip limit, the FC optimum flew 15–27° sideways and used the side force as free lift (the linear polar has no sideslip drag), and appeared to burn 6–9 % less fuel than the point mass. See [Formulation in code](formulation.md#optimal-control-problems-srcformulationocp_cpp).
+- **Smoothing is cheap.** The smoothness terms are 0–1 % of the final cost, well under the 15 % rule of [10. Cost function](../10-cost-function.md). With almost none (β_c = 0.01, β_s = 0) the minimum-fuel point-mass optimum is bang-bang: thrust flips between 0 and 27 N, and the aircraft glides up to 63 m down and climbs back. With β_c = β_s = 1, the total variation of the UF thrust drops 24–39× (from 427–697 N to about 18 N). For FC, thrust variation drops 4–6× and the node-to-node bank oscillation 4–5×.
+- **Clearance along the whole path.** The zone rows hold at the nodes, but with an inflated margin $\sqrt{m^2+(\ell/2)^2}$ the straight segments between nodes also stay 9–12 m beyond the real margin. With the plain margin, the segments cut 8–18 m into it at the zone corners.
+- **Discretisation error.** An RK4 simulation of each interval, driven by the optimal controls, lands within 0.3–0.9 m of the next node. One open-loop simulation over the whole flight drifts by 10–70 m (`sim_drift_uf_m` in `summary.csv`), because heading and speed errors integrate. A tracking loop removes that drift in practice.
+
+## UC-09 — Warm-start benchmark
+
+The same four missions solved by four pipelines. Every pipeline solves exactly the same problems: scales, cost references and t_f bounds come from the mission, not from the seed.
+
+```text
+id     pipeline   | WS[ms] | UF           it   t[ms] | FC           it   t[ms] |    total       J  tf[s] fuel_g
+M-01   COLD>UF    |      0 | solved      118     543  | -                        |      543  0.3923  153.2   6.24
+M-01   WS>UF      |    173 | solved      116     538  | -                        |      712  0.3898  152.3   6.21
+M-01   WS>FC      |    170 | -                        | solved      102     855  |     1025  0.3911  152.6   6.21
+M-01   WS>UF>FC   |    167 | solved      116     538  | acceptable   85     704  |     1409  0.3911  152.5   6.21
+M-02   COLD>UF    |      0 | solved      130     629  | -                        |      629  0.3961  178.5   7.36
+M-02   WS>UF      |    443 | solved      115     577  | -                        |     1020  0.3961  178.4   7.36
+M-02   WS>FC      |    437 | -                        | acceptable   92     815  |     1252  0.3973  178.7   7.36
+M-02   WS>UF>FC   |    435 | solved      115     590  | solved       90     788  |     1814  0.3973  178.7   7.36
+M-03   COLD>UF    |      0 | solved      246    1157  | -                        |     1157  0.3816  199.4   8.38
+M-03   WS>UF      |     38 | solved      121     571  | -                        |      609  0.3765  199.1   8.25
+M-03   WS>FC      |     37 | -                        | solved      117     886  |      924  0.3774  199.2   8.26
+M-03   WS>UF>FC   |     37 | solved      121     519  | solved      193    1473  |     2029  0.3774  199.2   8.26
+M-04   COLD>UF    |      0 | solved      124     625  | -                        |      626  0.6106  195.3  11.96
+M-04   WS>UF      |    286 | solved      103     512  | -                        |      798  0.5877  185.8  11.55
+M-04   WS>FC      |    292 | -                        | acceptable  130    1091  |     1384  0.5882  186.6  11.54
+M-04   WS>UF>FC   |    283 | solved      103     528  | acceptable  131    1125  |     1937  0.5882  186.6  11.54
+```
+
+![Warm-start benchmark](../assets/figures/code/uc09_benchmark.png)
+
+How to read the results, against the thesis's claims ([14. Warm-start benchmark](../14-results-warmstart.md)):
+
+- **Seed quality.** The warm start's largest collocation defect is 0.25–0.92 (normalised), against 3.0–3.7 for the cold start. The projected UF optimum gives the FC stage a defect of 3.0–3.6, against 11–36 for the run flown by the FC autopilot.
+- **The cold start converges here, but it is worse.** Unlike in the thesis, the straight-line cold start does not make the point-mass problem infeasible. That is a small, slow aircraft with large turn radii relative to the zones, and an exact defect Jacobian. It still needs more iterations (up to 2×, in M-03), and in M-04 it converges to a different, worse local optimum: 195 s and 11.96 g against 186 s and 11.55 g, +3.9 % cost.
+- **The UF stage does not make the FC stage faster here.** Seeded by the projected UF optimum or directly by the autopilot run, FC reaches the same optimum, and the solve-time difference is within ±20 % except in M-03. Unlike the thesis's direct seed, built by inverse dynamics, the autopilot run is a genuinely flown 6-DoF trajectory, already a good seed. The thesis's 1.2–4.4× FC speed-up is therefore **not reproduced** with this aircraft and this seed. What the UF stage does buy is a much cheaper exploration (0.5 s instead of 0.8–1.5 s) and a 6-DoF seed with 4–10× smaller defects.
+- **Timings depend on the machine; iteration counts on the IPOPT version and linear solver.** The tables come from IPOPT 3.11.9 (Linux). IPOPT 3.14.20 on Windows reaches the same optima to the printed digits, but its counts differ, by up to a factor of two (for example 193 against 99 iterations for the FC stage of M-03).
+
+## UC-07 — Missions with no-fly zones and waypoints
+
+These planned and flown trajectories are the warm starts of UC-08.
 
 These are the same families as the thesis benchmark ([14. Warm-start benchmark](../14-results-warmstart.md)), scaled to the generic UAV: 25 m/s, 30° bank, and a planning radius of 143 m.
 
@@ -63,10 +143,10 @@ M-04    NFZ, waypoint, climb; low NFZ  |   1370    143   3921 |  159.3  157.8 | 
 
 How to read the results:
 
-- **The cold start would be infeasible.** The straight line between the same end points gives NFZ rows of +6 to +11 in the NLP. With a 40 m margin that means 200–394 m inside the zones, or 240–434 m past the margin. The planned and flown trajectories give −0.3 to −0.4, so they are outside every margin. This is the same reason the thesis's cold start failed in its NFZ and waypoint scenarios.
+- **The cold start would be infeasible.** The straight line between the same end points gives NFZ rows of +6 to +11 in the NLP. With a 40 m margin that means 200–394 m inside the zones, or 240–434 m past the margin. The planned and flown trajectories give −0.3 to −0.4, so they are outside every margin. This is the same reason the thesis's cold start failed in its NFZ and waypoint scenarios. With this small aircraft, IPOPT still recovers from it, but more slowly and sometimes into a worse optimum (UC-09).
 - **The planner is cheap, and the guidance holds the path.** Planning takes 0.01–2 s, depending on the machine. UF and FC end with the same clearance to the metre, and it stays above the planner's safety distance, so the 0.8 bank fraction leaves enough room to track the path.
 - **Mesh resolution.** The flown trajectories satisfy the collocation equations to 0.14–0.55 on 80 nodes, and to 0.004–0.014 on 320 nodes. As in UC-06, the mesh must resolve the turns.
-- **What is still missing for an optimum.** A trajectory like this is the warm start that the thesis then hands to the UF and FC optimisation stages. That stage, the optimiser, is not part of the public edition.
+- **From flyable to optimal.** A trajectory like this is the warm start that UC-08 hands to the UF and FC optimisation stages.
 
 ## UC-01 — Aircraft report
 
@@ -111,7 +191,7 @@ The two models need the same thrust (9.27 N against 9.25 N), because they share 
   <figcaption>FC after an elevator doublet. The short-period mode is the fast α oscillation that dies out in about 1 s. The phugoid is the slow exchange between speed and altitude, with a period of about 12 s (theory: 2πV/(g√2) ≈ 11 s).</figcaption>
 </figure>
 
-## UC-04 — The NLP an optimiser would see
+## UC-04 — The NLP an optimiser sees
 
 Straight 3.1 km leg with a 100 m climb, point-mass model, trapezoidal collocation:
 
@@ -210,6 +290,6 @@ Each UF trajectory is resampled on N = 60 and 4N = 240 uniform nodes and passed 
 - **Manoeuvres.** On 60 nodes (about 1.7 s spacing), the roll-in and pull-up transients, which last about 1 s, are not resolved, and the defect reaches O(0.1–1). Refining to 240 nodes cuts it by 7–36×. **The mesh must resolve the fastest manoeuvre in the mission.** The production solver chooses N automatically from the path length, which is why.
 - **Constraints.** Every path constraint is satisfied (h ≤ 0). The closest to its limit are the power constraint during climbs, which is active, and V_NE in level flight.
 
-A trajectory like this is exactly what a warm start hands to the optimiser: flyable, nearly consistent with the collocation equations, and inside the envelope.
+A trajectory like this is exactly what a warm start hands to the optimiser (UC-08): flyable, nearly consistent with the collocation equations, and inside the envelope.
 
 [← Use cases](use-cases.md) · [Aircraft file format →](aircraft-format.md)

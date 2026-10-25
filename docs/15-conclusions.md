@@ -13,7 +13,7 @@ An end-to-end pipeline for 3D minimum-time and minimum-fuel trajectory planning 
 - a Bolza cost with a time–fuel parameter and smoothness regularisation,
 - a Hybrid A\* → inverse dynamics → UF → FC warm-start chain,
 - an external validation suite and a warm-start benchmark,
-- a restricted public edition of the formulation, with a generic aircraft and runnable design examples ([Code](code/index.md)).
+- a clean-room public implementation of the method, from the formulation to a two-stage optimisation with IPOPT, with a generic aircraft and runnable examples ([Code](code/index.md)).
 
 ## What the evidence supports
 
