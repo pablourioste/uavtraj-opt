@@ -1,0 +1,2830 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+        <meta name="description" content="Minimum-time / minimum-fuel trajectory optimisation with a Hybrid A* warm start (BSc thesis, UPC – ESEIAAT)">
+      
+      
+      
+      
+        <link rel="prev" href="../02-first-run/">
+      
+      
+        <link rel="next" href="../04-results/">
+      
+      
+        
+      
+      
+      <link rel="icon" href="../../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.8.0">
+    
+    
+      
+        <title>3. Input files - Optimal 3D Trajectory Planning for a Fixed-Wing UAV</title>
+      
+    
+    
+      <link rel="stylesheet" href="../../assets/stylesheets/main.57a0d79d.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+    <script>__md_scope=new URL("../..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+  </head>
+  
+  
+    <body dir="ltr">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#3-input-files" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+  
+
+<header class="md-header md-header--shadow" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href="../.." title="Optimal 3D Trajectory Planning for a Fixed-Wing UAV" class="md-header__button md-logo" aria-label="Optimal 3D Trajectory Planning for a Fixed-Wing UAV" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            Optimal 3D Trajectory Planning for a Fixed-Wing UAV
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              3. Input files
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+      <div class="md-header__source">
+        <a href="https://github.com/pablourioste/uavtraj-opt" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"/></svg>
+  </div>
+  <div class="md-source__repository">
+    GitHub
+  </div>
+</a>
+      </div>
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+
+<nav class="md-nav md-nav--primary" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href="../.." title="Optimal 3D Trajectory Planning for a Fixed-Wing UAV" class="md-nav__button md-logo" aria-label="Optimal 3D Trajectory Planning for a Fixed-Wing UAV" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    Optimal 3D Trajectory Planning for a Fixed-Wing UAV
+  </label>
+  
+    <div class="md-nav__source">
+      <a href="https://github.com/pablourioste/uavtraj-opt" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"/></svg>
+  </div>
+  <div class="md-source__repository">
+    GitHub
+  </div>
+</a>
+    </div>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../.." class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Home
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+    
+  
+  
+  
+    
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2" checked>
+        
+          
+          <label class="md-nav__link" for="__nav_2" id="__nav_2_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    User guide
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_2_label" aria-expanded="true">
+          <label class="md-nav__title" for="__nav_2">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    User guide
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Contents
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../01-installation/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    1. Installation
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../02-first-run/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    2. First run
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+    
+  
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    3. Input files
+  
+
+    
+  </span>
+  
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    3. Input files
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#31-conventions" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3.1 Conventions
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#32-the-case-file" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3.2 The case file
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#33-missions" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3.3 Missions
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="3.3 Missions">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#keys" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Keys
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#what-is-fixed-and-what-is-free" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        What is fixed and what is free
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#no-fly-zones" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        No-fly zones
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#waypoints" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Waypoints
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#derived-quantities" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Derived quantities
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#34-the-pipeline-block" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3.4 The pipeline block
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="3.4 The pipeline block">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#planner-settings" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Planner settings
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#solver-settings" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Solver settings
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#35-benchmark-case-files-uc-09" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3.5 Benchmark case files (UC-09)
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#36-the-aircraft-file" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3.6 The aircraft file
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#37-checklist-before-running-a-new-case" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3.7 Checklist before running a new case
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../04-results/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    4. Reading the results
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../05-tutorial/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    5. Tutorial, first mission
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../06-optimisation-process/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    6. The optimisation process
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../07-formulation/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    7. Mathematical formulation
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../08-ipopt/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    8. Using IPOPT
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../09-examples/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    9. Example catalogue
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../10-troubleshooting/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    10. Troubleshooting
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../11-extending/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    11. Using and extending the library
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3" >
+        
+          
+          <label class="md-nav__link" for="__nav_3" id="__nav_3_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Project
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Project
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../01-problem/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    1. Problem and requirements
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../02-state-of-the-art/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    2. State of the art
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../03-methodology/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    3. Methodology
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../04-design-decisions/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    4. Design decisions
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4" >
+        
+          
+          <label class="md-nav__link" for="__nav_4" id="__nav_4_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Theory
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_4_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_4">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Theory
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../05-ocp-theory/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    5. OCP and NLP
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../06-dynamics-uf/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    6. Point-mass dynamics (UF)
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../07-dynamics-fc/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    7. Rigid-body dynamics (FC)
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../08-transcription/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    8. Transcription
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../09-constraints/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    9. Constraints
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../10-cost-function/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    10. Cost function
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../11-warm-start/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    11. Warm start pipeline
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_5" >
+        
+          
+          <label class="md-nav__link" for="__nav_5" id="__nav_5_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Results
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_5_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_5">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Results
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../12-results-validation/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    12. Validation
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../13-results-penalties/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    13. Regularisation
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../14-results-warmstart/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    14. Warm-start benchmark
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../derivatives/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Derivatives: v1 and v2
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../15-conclusions/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    15. Conclusions
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_6" >
+        
+          
+          <label class="md-nav__link" for="__nav_6" id="__nav_6_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Code (public implementation)
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_6_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_6">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Code (public implementation)
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../code/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Overview and quick start
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../code/architecture/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Architecture
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../code/formulation/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Formulation in code
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../code/use-cases/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Use cases
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../code/examples/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Worked examples and design scenarios
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../code/aircraft-format/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Aircraft file format
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_7" >
+        
+          
+          <label class="md-nav__link" for="__nav_7" id="__nav_7_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Appendix
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_7_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_7">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Appendix
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../appendix-frames/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Coordinate frames
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../appendix-adjoint/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Adjoint method
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../appendix-msn012/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Aircraft MSN012
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../references/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    References
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#31-conventions" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3.1 Conventions
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#32-the-case-file" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3.2 The case file
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#33-missions" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3.3 Missions
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="3.3 Missions">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#keys" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Keys
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#what-is-fixed-and-what-is-free" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        What is fixed and what is free
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#no-fly-zones" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        No-fly zones
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#waypoints" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Waypoints
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#derived-quantities" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Derived quantities
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#34-the-pipeline-block" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3.4 The pipeline block
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="3.4 The pipeline block">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#planner-settings" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Planner settings
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#solver-settings" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Solver settings
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#35-benchmark-case-files-uc-09" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3.5 Benchmark case files (UC-09)
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#36-the-aircraft-file" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3.6 The aircraft file
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#37-checklist-before-running-a-new-case" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3.7 Checklist before running a new case
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+  
+  
+
+
+<h1 id="3-input-files">3. Input files</h1>
+<p>An optimisation is described by two JSON files: a <strong>case file</strong>, which holds the missions and every setting of the run, and an <strong>aircraft file</strong>, which holds the design data of the aircraft. This chapter documents both for the optimisation use case (UC-08) and the benchmark (UC-09). The keys of the other use cases are listed in <a href="../../code/use-cases/">Use cases: input reference</a>.</p>
+<pre class="mermaid"><code>flowchart LR
+    C["case file&lt;br/&gt;use_case, pipeline, missions, output"] --&gt;|aircraft path| A["aircraft file&lt;br/&gt;mass, geometry, aero, envelope ..."]
+    C --&gt; P[ofc]
+    A --&gt; P
+    P --&gt; O["output folder&lt;br/&gt;CSV, JSON"]</code></pre>
+<h2 id="31-conventions">3.1 Conventions</h2>
+<table>
+<thead>
+<tr>
+<th>Topic</th>
+<th>Convention</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Units</td>
+<td>SI: metres, seconds, kilograms, newtons, watts</td>
+</tr>
+<tr>
+<td>Angles</td>
+<td>Degrees in every input key, and those keys end in <code>_deg</code> or <code>_dps</code> (degrees per second). Radians inside the code</td>
+</tr>
+<tr>
+<td>Horizontal position</td>
+<td>Local flat-Earth frame, in metres, written <code>[north, east]</code></td>
+</tr>
+<tr>
+<td>Heading</td>
+<td>Degrees clockwise from north: 0 = north, 90 = east, 180 = south, -90 or 270 = west</td>
+</tr>
+<tr>
+<td>Altitude</td>
+<td>Metres, positive up. The code uses north-east-down (NED) axes internally, so its <code>z</code> is <code>-h</code></td>
+</tr>
+<tr>
+<td>Paths to files</td>
+<td>Relative to the folder the program is started from (normally <code>code/</code>)</td>
+</tr>
+<tr>
+<td>Comments</td>
+<td><code>//</code> and <code>/* */</code> comments are accepted in case files. Aircraft files must be strict JSON</td>
+</tr>
+<tr>
+<td>Missing keys</td>
+<td>Optional keys take the documented default. Unknown keys are ignored, so a misspelt key silently falls back to its default: check the spelling when a setting seems to have no effect</td>
+</tr>
+</tbody>
+</table>
+<p>The flight takes place in still air: UC-08 and UC-09 have no wind input.</p>
+<h2 id="32-the-case-file">3.2 The case file</h2>
+<p>A UC-08 case file has five top-level keys:</p>
+<div class="highlight"><pre><span></span><code><span class="p">{</span>
+<span class="w">  </span><span class="nt">"use_case"</span><span class="p">:</span><span class="w"> </span><span class="s2">"UC-08"</span><span class="p">,</span>
+<span class="w">  </span><span class="nt">"aircraft"</span><span class="p">:</span><span class="w"> </span><span class="s2">"data/aircraft/generic_uav.json"</span><span class="p">,</span>
+<span class="w">  </span><span class="nt">"pipeline"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="err">...</span><span class="w"> </span><span class="p">},</span>
+<span class="w">  </span><span class="nt">"missions"</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="err">...</span><span class="w"> </span><span class="p">},</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="err">...</span><span class="w"> </span><span class="p">}</span><span class="w"> </span><span class="p">],</span>
+<span class="w">  </span><span class="nt">"output"</span><span class="p">:</span><span class="w"> </span><span class="s2">"output/my_case"</span>
+<span class="p">}</span>
+</code></pre></div>
+<table>
+<thead>
+<tr>
+<th>Key</th>
+<th style="text-align: center;">Required</th>
+<th>Meaning</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>use_case</code></td>
+<td style="text-align: center;">✓</td>
+<td><code>"UC-08"</code> for optimal missions, <code>"UC-09"</code> for the benchmark</td>
+</tr>
+<tr>
+<td><code>aircraft</code></td>
+<td style="text-align: center;">✓</td>
+<td>Path of the aircraft file</td>
+</tr>
+<tr>
+<td><code>pipeline</code></td>
+<td style="text-align: center;"></td>
+<td>Seed, stages, cost weights, node counts, planner and solver settings (section 3.4). Every key has a default</td>
+</tr>
+<tr>
+<td><code>missions</code></td>
+<td style="text-align: center;">✓</td>
+<td>List of missions (section 3.3). Each one is solved independently with the same settings</td>
+</tr>
+<tr>
+<td><code>output</code></td>
+<td style="text-align: center;"></td>
+<td>Output folder. Default <code>output/uc08</code> (UC-08) or <code>output/uc09</code> (UC-09)</td>
+</tr>
+</tbody>
+</table>
+<p>The smallest valid case file uses every default: a 25 m/s cruise at 300 m from the origin, heading north, to a point 3 km north, minimising fuel.</p>
+<div class="highlight"><pre><span></span><code><span class="p">{</span>
+<span class="w">  </span><span class="nt">"use_case"</span><span class="p">:</span><span class="w"> </span><span class="s2">"UC-08"</span><span class="p">,</span>
+<span class="w">  </span><span class="nt">"aircraft"</span><span class="p">:</span><span class="w"> </span><span class="s2">"data/aircraft/generic_uav.json"</span><span class="p">,</span>
+<span class="w">  </span><span class="nt">"missions"</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="nt">"id"</span><span class="p">:</span><span class="w"> </span><span class="s2">"M-00"</span><span class="p">,</span><span class="w"> </span><span class="nt">"end"</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="mi">3000</span><span class="p">,</span><span class="w"> </span><span class="mi">0</span><span class="p">]</span><span class="w"> </span><span class="p">}</span><span class="w"> </span><span class="p">],</span>
+<span class="w">  </span><span class="nt">"output"</span><span class="p">:</span><span class="w"> </span><span class="s2">"output/minimal"</span>
+<span class="p">}</span>
+</code></pre></div>
+<h2 id="33-missions">3.3 Missions</h2>
+<p>Each element of <code>missions</code> describes one flight from a start pose to a goal pose. The same description feeds the planner, the guidance laws and both optimal-control problems.</p>
+<h3 id="keys">Keys</h3>
+<table>
+<thead>
+<tr>
+<th>Key</th>
+<th>Unit</th>
+<th>Default</th>
+<th>Meaning</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>id</code></td>
+<td>text</td>
+<td><code>"SC"</code></td>
+<td>Identifier, used in the console table and in the output file names. Give each mission a unique one</td>
+</tr>
+<tr>
+<td><code>title</code></td>
+<td>text</td>
+<td><code>id</code></td>
+<td>Free description, written to <code>report.json</code></td>
+</tr>
+<tr>
+<td><code>h0_m</code></td>
+<td>m</td>
+<td>300</td>
+<td>Initial altitude</td>
+</tr>
+<tr>
+<td><code>climb_m</code></td>
+<td>m</td>
+<td>0</td>
+<td>Altitude change. Final altitude = <code>h0_m + climb_m</code>; negative values describe a descent</td>
+</tr>
+<tr>
+<td><code>V_mps</code></td>
+<td>m/s</td>
+<td>aircraft <code>V_cruise</code></td>
+<td>Initial airspeed (a fixed boundary condition) and commanded speed of the warm start</td>
+</tr>
+<tr>
+<td><code>bank_deg</code></td>
+<td>deg</td>
+<td>¾ of <code>phi_max_deg</code></td>
+<td>Bank angle used by the warm start: it sets the planner's turn radius and limits the guidance</td>
+</tr>
+<tr>
+<td><code>gamma_deg</code></td>
+<td>deg</td>
+<td>½ of <code>gamma_max_deg</code></td>
+<td>Largest flight-path angle the guidance uses to climb or descend</td>
+</tr>
+<tr>
+<td><code>start</code></td>
+<td>m</td>
+<td><code>[0, 0]</code></td>
+<td>Start position <code>[north, east]</code></td>
+</tr>
+<tr>
+<td><code>start_heading_deg</code></td>
+<td>deg</td>
+<td>0</td>
+<td>Initial heading</td>
+</tr>
+<tr>
+<td><code>end</code></td>
+<td>m</td>
+<td>required</td>
+<td>Goal position <code>[north, east]</code></td>
+</tr>
+<tr>
+<td><code>end_heading_deg</code></td>
+<td>deg</td>
+<td>0</td>
+<td>Final heading</td>
+</tr>
+<tr>
+<td><code>nfz</code></td>
+<td></td>
+<td>none</td>
+<td>List of no-fly zones (below)</td>
+</tr>
+<tr>
+<td><code>waypoints</code></td>
+<td></td>
+<td>none</td>
+<td>List of waypoints, visited in the order given (below)</td>
+</tr>
+</tbody>
+</table>
+<h3 id="what-is-fixed-and-what-is-free">What is fixed and what is free</h3>
+<p>The optimiser does not choose the start or the goal; it chooses everything in between, including the flight time.</p>
+<table>
+<thead>
+<tr>
+<th>Quantity</th>
+<th>At the start</th>
+<th>At the end</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Position and altitude</td>
+<td>Fixed: <code>start</code>, <code>h0_m</code></td>
+<td>Fixed: <code>end</code>, <code>h0_m + climb_m</code></td>
+</tr>
+<tr>
+<td>Heading</td>
+<td>Fixed: <code>start_heading_deg</code></td>
+<td>Fixed: <code>end_heading_deg</code> (any multiple of 360° is accepted)</td>
+</tr>
+<tr>
+<td>Airspeed</td>
+<td>Fixed: <code>V_mps</code></td>
+<td>Free</td>
+</tr>
+<tr>
+<td>Flight-path angle, bank</td>
+<td>Fixed: level, wings level</td>
+<td>Free</td>
+</tr>
+<tr>
+<td>Mass</td>
+<td>Fixed: take-off mass <code>m0_kg</code></td>
+<td>Free (it is what minimum fuel maximises)</td>
+</tr>
+<tr>
+<td>6-DoF attitude, rates, controls</td>
+<td>Fixed: wings-level trim at <code>V_mps</code> and <code>h0_m</code></td>
+<td>Free</td>
+</tr>
+</tbody>
+</table>
+<p><code>bank_deg</code> and <code>gamma_deg</code> only shape the warm start. The optimiser itself is limited by the aircraft envelope (<code>phi_max_deg</code>, <code>gamma_min_deg</code>, <code>gamma_max_deg</code>), so the optimum may bank or climb more steeply than the warm start did.</p>
+<h3 id="no-fly-zones">No-fly zones</h3>
+<div class="highlight"><pre><span></span><code><span class="nt">"nfz"</span><span class="p">:</span><span class="w"> </span><span class="p">[</span>
+<span class="w">  </span><span class="p">{</span><span class="w"> </span><span class="nt">"id"</span><span class="p">:</span><span class="w"> </span><span class="s2">"TOWN"</span><span class="p">,</span><span class="w"> </span><span class="nt">"polygon"</span><span class="p">:</span><span class="w"> </span><span class="p">[[</span><span class="mi">1200</span><span class="p">,</span><span class="w"> </span><span class="mi">-400</span><span class="p">],</span><span class="w"> </span><span class="p">[</span><span class="mi">2000</span><span class="p">,</span><span class="w"> </span><span class="mi">-400</span><span class="p">],</span><span class="w"> </span><span class="p">[</span><span class="mi">2000</span><span class="p">,</span><span class="w"> </span><span class="mi">500</span><span class="p">],</span><span class="w"> </span><span class="p">[</span><span class="mi">1200</span><span class="p">,</span><span class="w"> </span><span class="mi">500</span><span class="p">]],</span>
+<span class="w">    </span><span class="nt">"h_min_m"</span><span class="p">:</span><span class="w"> </span><span class="mi">0</span><span class="p">,</span><span class="w"> </span><span class="nt">"h_max_m"</span><span class="p">:</span><span class="w"> </span><span class="mi">1500</span><span class="p">,</span><span class="w"> </span><span class="nt">"margin_m"</span><span class="p">:</span><span class="w"> </span><span class="mi">40</span><span class="w"> </span><span class="p">}</span>
+<span class="p">]</span>
+</code></pre></div>
+<table>
+<thead>
+<tr>
+<th>Key</th>
+<th>Unit</th>
+<th>Default</th>
+<th>Meaning</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>id</code></td>
+<td>text</td>
+<td><code>"NFZ"</code></td>
+<td>Name, used in the constraint labels (<code>nfz:TOWN</code>)</td>
+</tr>
+<tr>
+<td><code>polygon</code></td>
+<td>m</td>
+<td>required</td>
+<td>At least three vertices <code>[north, east]</code>, in either orientation. The polygon must be simple: its edges may not cross</td>
+</tr>
+<tr>
+<td><code>h_min_m</code>, <code>h_max_m</code></td>
+<td>m</td>
+<td>0, 10⁹</td>
+<td>Altitude band of the zone; <code>h_max_m</code> must be greater than <code>h_min_m</code></td>
+</tr>
+<tr>
+<td><code>margin_m</code></td>
+<td>m</td>
+<td>0</td>
+<td>Required horizontal distance from the polygon</td>
+</tr>
+</tbody>
+</table>
+<p>A zone is a vertical prism: the polygon extruded from <code>h_min_m</code> to <code>h_max_m</code>. It is <strong>active</strong> for a mission if its band overlaps the altitudes the mission spans, from <code>h0_m</code> to <code>h0_m + climb_m</code>. An inactive zone is ignored everywhere, so the aircraft may fly over it (see mission M-04 in UC-08). The decision is taken once per mission, not per node, because a constraint that switches on and off with altitude would be discontinuous.</p>
+<p>Three distances are involved, from the inside out:</p>
+<ol>
+<li><code>margin_m</code>, the distance the trajectory must keep. The verification checks it along the whole optimal path.</li>
+<li>The margin the optimiser enforces at the nodes, slightly larger so that the straight segments between nodes also keep <code>margin_m</code> (section 7.5).</li>
+<li><code>margin_m + safety_m</code> (planner setting, default 10 m), the distance the warm-start path keeps.</li>
+</ol>
+<h3 id="waypoints">Waypoints</h3>
+<div class="highlight"><pre><span></span><code><span class="nt">"waypoints"</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="nt">"id"</span><span class="p">:</span><span class="w"> </span><span class="s2">"WP1"</span><span class="p">,</span><span class="w"> </span><span class="nt">"position"</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="mi">3000</span><span class="p">,</span><span class="w"> </span><span class="mi">1200</span><span class="p">],</span><span class="w"> </span><span class="nt">"tolerance_m"</span><span class="p">:</span><span class="w"> </span><span class="mi">40</span><span class="w"> </span><span class="p">}</span><span class="w"> </span><span class="p">]</span>
+</code></pre></div>
+<table>
+<thead>
+<tr>
+<th>Key</th>
+<th>Unit</th>
+<th>Default</th>
+<th>Meaning</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>id</code></td>
+<td>text</td>
+<td><code>"WP"</code></td>
+<td>Name, used in the constraint labels (<code>wp:WP1</code>)</td>
+</tr>
+<tr>
+<td><code>position</code></td>
+<td>m</td>
+<td>required</td>
+<td><code>[north, east]</code></td>
+</tr>
+<tr>
+<td><code>tolerance_m</code></td>
+<td>m</td>
+<td>50</td>
+<td>The trajectory must pass within this horizontal distance</td>
+</tr>
+</tbody>
+</table>
+<p>Waypoints are visited in the order listed. They constrain the horizontal position only, not the altitude, speed or heading. A minimum-fuel optimum usually passes on the edge of the tolerance circle, because going closer costs fuel.</p>
+<h3 id="derived-quantities">Derived quantities</h3>
+<p>From a mission, the program derives quantities that you do not enter but will see in the results:</p>
+<table>
+<thead>
+<tr>
+<th>Quantity</th>
+<th>Definition</th>
+<th>Used for</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Reference length <span class="arithmatex">\(L_{ref}\)</span></td>
+<td>Length of the polyline start → waypoints → goal, combined with the altitude change: <span class="arithmatex">\(\sqrt{L_h^2+\Delta h^2}\)</span></td>
+<td>Scaling of positions, bounds of the flight time, the NFZ margin inflation</td>
+</tr>
+<tr>
+<td>Reference time <span class="arithmatex">\(t_{ref}\)</span></td>
+<td><span class="arithmatex">\(L_{ref}/V\)</span> with <span class="arithmatex">\(V\)</span> = <code>V_mps</code></td>
+<td>Scaling of the flight time and of the cost</td>
+</tr>
+<tr>
+<td>Planning radius <span class="arithmatex">\(R\)</span></td>
+<td><span class="arithmatex">\(V^2 / (g\tan(f_b\,\phi_{ws}))\)</span>, with <span class="arithmatex">\(f_b\)</span> = <code>bank_fraction</code> and <span class="arithmatex">\(\phi_{ws}\)</span> = <code>bank_deg</code></td>
+<td>Hybrid A* turn radius</td>
+</tr>
+<tr>
+<td>Altitude band</td>
+<td><span class="arithmatex">\([\min(h_0,h_f), \max(h_0,h_f)]\)</span></td>
+<td>Activity of the no-fly zones</td>
+</tr>
+</tbody>
+</table>
+<h2 id="34-the-pipeline-block">3.4 The pipeline block</h2>
+<div class="highlight"><pre><span></span><code><span class="nt">"pipeline"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">  </span><span class="nt">"seed"</span><span class="p">:</span><span class="w"> </span><span class="s2">"warm"</span><span class="p">,</span><span class="w"> </span><span class="nt">"stages"</span><span class="p">:</span><span class="w"> </span><span class="s2">"UF&gt;FC"</span><span class="p">,</span><span class="w"> </span><span class="nt">"fc_from_uf"</span><span class="p">:</span><span class="w"> </span><span class="kc">true</span><span class="p">,</span>
+<span class="w">  </span><span class="nt">"nodes_uf"</span><span class="p">:</span><span class="w"> </span><span class="mi">60</span><span class="p">,</span><span class="w"> </span><span class="nt">"nodes_fc"</span><span class="p">:</span><span class="w"> </span><span class="mi">60</span><span class="p">,</span>
+<span class="w">  </span><span class="nt">"alpha"</span><span class="p">:</span><span class="w"> </span><span class="mf">1.0</span><span class="p">,</span><span class="w"> </span><span class="nt">"beta_control"</span><span class="p">:</span><span class="w"> </span><span class="mf">1.0</span><span class="p">,</span><span class="w"> </span><span class="nt">"beta_state"</span><span class="p">:</span><span class="w"> </span><span class="mf">1.0</span><span class="p">,</span>
+<span class="w">  </span><span class="nt">"sideslip_max_deg"</span><span class="p">:</span><span class="w"> </span><span class="mf">1.0</span><span class="p">,</span><span class="w"> </span><span class="nt">"verify_tol"</span><span class="p">:</span><span class="w"> </span><span class="mf">1e-4</span><span class="p">,</span>
+<span class="w">  </span><span class="nt">"planner"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="nt">"cell_m"</span><span class="p">:</span><span class="w"> </span><span class="mi">20</span><span class="p">,</span><span class="w"> </span><span class="nt">"heading_bins"</span><span class="p">:</span><span class="w"> </span><span class="mi">72</span><span class="p">,</span><span class="w"> </span><span class="nt">"step_m"</span><span class="p">:</span><span class="w"> </span><span class="mi">30</span><span class="p">,</span><span class="w"> </span><span class="nt">"bank_fraction"</span><span class="p">:</span><span class="w"> </span><span class="mf">0.8</span><span class="p">,</span><span class="w"> </span><span class="nt">"safety_m"</span><span class="p">:</span><span class="w"> </span><span class="mi">10</span><span class="w"> </span><span class="p">},</span>
+<span class="w">  </span><span class="nt">"solver"</span><span class="p">:</span><span class="w">  </span><span class="p">{</span><span class="w"> </span><span class="nt">"tol"</span><span class="p">:</span><span class="w"> </span><span class="mf">1e-6</span><span class="p">,</span><span class="w"> </span><span class="nt">"acceptable_tol"</span><span class="p">:</span><span class="w"> </span><span class="mf">1e-4</span><span class="p">,</span><span class="w"> </span><span class="nt">"max_iter"</span><span class="p">:</span><span class="w"> </span><span class="mi">1500</span><span class="p">,</span><span class="w"> </span><span class="nt">"max_cpu_time_s"</span><span class="p">:</span><span class="w"> </span><span class="mi">120</span><span class="p">,</span><span class="w"> </span><span class="nt">"print_level"</span><span class="p">:</span><span class="w"> </span><span class="mi">0</span><span class="w"> </span><span class="p">}</span>
+<span class="p">}</span>
+</code></pre></div>
+<table>
+<thead>
+<tr>
+<th>Key</th>
+<th>Default</th>
+<th>Meaning</th>
+<th>Guidance</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>seed</code></td>
+<td><code>"warm"</code></td>
+<td><code>"warm"</code>: Hybrid A* path flown by the guidance laws. <code>"cold"</code>: straight line from start to goal</td>
+<td>Keep <code>"warm"</code>. Use <code>"cold"</code> only to measure what the warm start is worth</td>
+</tr>
+<tr>
+<td><code>stages</code></td>
+<td><code>"UF&gt;FC"</code></td>
+<td>Stages to run: <code>"UF&gt;FC"</code>, <code>"UF"</code> or <code>"FC"</code></td>
+<td><code>"UF"</code> is fast and enough for most planning studies; add <code>FC</code> when attitude, rates or surface deflections matter</td>
+</tr>
+<tr>
+<td><code>fc_from_uf</code></td>
+<td><code>true</code></td>
+<td>Seed the FC stage with the UF optimum. If <code>false</code>, or if the UF stage failed, FC is seeded by the warm start</td>
+<td>Keep <code>true</code></td>
+</tr>
+<tr>
+<td><code>nodes_uf</code>, <code>nodes_fc</code></td>
+<td>60, 60</td>
+<td>Collocation nodes <span class="arithmatex">\(N\)</span> of each stage</td>
+<td>The bundled 3–4 km missions use 60 nodes, one every 50–70 m of path. More nodes resolve turns better and cost more time (section 6.10)</td>
+</tr>
+<tr>
+<td><code>alpha</code></td>
+<td>1.0</td>
+<td>Cost weight: 0 = minimum time, 1 = minimum fuel, values in between trade one against the other</td>
+<td>See the tutorial (chapter 5) for the effect</td>
+</tr>
+<tr>
+<td><code>beta_control</code></td>
+<td>1.0</td>
+<td>Weight of the control-smoothness penalty</td>
+<td>1 keeps the penalty at 0–1 % of the cost. Values near 0 give bang-bang thrust</td>
+</tr>
+<tr>
+<td><code>beta_state</code></td>
+<td>1.0</td>
+<td>Weight of the attitude-smoothness penalty (flight-path angle and bank for UF, roll and pitch for FC)</td>
+<td>As above</td>
+</tr>
+<tr>
+<td><code>sideslip_max_deg</code></td>
+<td>1.0</td>
+<td>FC sideslip limit, degrees</td>
+<td>Keep it small. A large value lets the 6-DoF model use side force as free lift (section 7.4)</td>
+</tr>
+<tr>
+<td><code>verify_tol</code></td>
+<td>10⁻⁴</td>
+<td>Tolerance of the post-solve verification. Constraint rows are normalised, so this is a relative tolerance</td>
+<td>Rarely changed</td>
+</tr>
+<tr>
+<td><code>planner</code></td>
+<td></td>
+<td>Hybrid A* settings (below)</td>
+<td></td>
+</tr>
+<tr>
+<td><code>solver</code></td>
+<td></td>
+<td>IPOPT settings (below and chapter 8)</td>
+<td></td>
+</tr>
+</tbody>
+</table>
+<h3 id="planner-settings">Planner settings</h3>
+<table>
+<thead>
+<tr>
+<th>Key</th>
+<th>Default</th>
+<th>Meaning</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>cell_m</code></td>
+<td>20</td>
+<td>Size of the search grid cells, metres</td>
+</tr>
+<tr>
+<td><code>heading_bins</code></td>
+<td>72</td>
+<td>Number of heading cells (72 = 5° each)</td>
+</tr>
+<tr>
+<td><code>step_m</code></td>
+<td>30</td>
+<td>Length of one motion primitive, metres</td>
+</tr>
+<tr>
+<td><code>bank_fraction</code></td>
+<td>0.8</td>
+<td>Fraction of <code>bank_deg</code> used to compute the planning radius. The rest is left to the guidance to correct tracking errors</td>
+</tr>
+<tr>
+<td><code>safety_m</code></td>
+<td>10</td>
+<td>Distance added to every zone margin by the planner</td>
+</tr>
+</tbody>
+</table>
+<p>A finer grid (<code>cell_m</code>, <code>heading_bins</code>) finds paths through narrower gaps but expands more search nodes. If the planner finds no path, a smaller <code>safety_m</code>, a finer grid or a larger <code>bank_fraction</code> (tighter planned turns, less bank left for the guidance) usually helps.</p>
+<h3 id="solver-settings">Solver settings</h3>
+<table>
+<thead>
+<tr>
+<th>Key</th>
+<th>Default</th>
+<th>Meaning</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>tol</code></td>
+<td>10⁻⁶</td>
+<td>Convergence tolerance of IPOPT</td>
+</tr>
+<tr>
+<td><code>acceptable_tol</code></td>
+<td>10⁻⁴</td>
+<td>Looser tolerance: IPOPT stops with status <code>acceptable</code> if it stays below it for several iterations without reaching <code>tol</code></td>
+</tr>
+<tr>
+<td><code>constr_viol_tol</code></td>
+<td>10⁻⁶</td>
+<td>Largest constraint violation accepted at convergence</td>
+</tr>
+<tr>
+<td><code>max_iter</code></td>
+<td>1500</td>
+<td>Iteration limit</td>
+</tr>
+<tr>
+<td><code>max_cpu_time_s</code></td>
+<td>120</td>
+<td>Time limit per stage, seconds</td>
+</tr>
+<tr>
+<td><code>print_level</code></td>
+<td>0</td>
+<td>IPOPT console output: 0 silent, 5 one line per iteration, up to 12</td>
+</tr>
+<tr>
+<td><code>mu_strategy</code></td>
+<td><code>"adaptive"</code></td>
+<td>Update rule of the barrier parameter: <code>"adaptive"</code> or <code>"monotone"</code></td>
+</tr>
+<tr>
+<td><code>lbfgs_history</code></td>
+<td>6</td>
+<td>Number of correction pairs kept by the limited-memory Hessian approximation</td>
+</tr>
+<tr>
+<td><code>linear_solver</code></td>
+<td>IPOPT's default</td>
+<td>Sparse linear solver, for example <code>"mumps"</code>, or <code>"ma27"</code>/<code>"ma57"</code> if IPOPT was built with the HSL routines</td>
+</tr>
+<tr>
+<td><code>derivative_test</code></td>
+<td><code>false</code></td>
+<td>Run IPOPT's first-order derivative checker at the initial point</td>
+</tr>
+</tbody>
+</table>
+<p>Chapter 8 explains each option, when to change it and how to read the output.</p>
+<h2 id="35-benchmark-case-files-uc-09">3.5 Benchmark case files (UC-09)</h2>
+<p>A UC-09 case file has the same <code>aircraft</code>, <code>pipeline</code>, <code>missions</code> and <code>output</code> keys, plus:</p>
+<table>
+<thead>
+<tr>
+<th>Key</th>
+<th>Default</th>
+<th>Meaning</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>pipelines</code></td>
+<td><code>["COLD&gt;UF", "WS&gt;UF", "WS&gt;FC", "WS&gt;UF&gt;FC"]</code></td>
+<td>Pipelines to compare. Each label is a seed (<code>WS</code> = warm start, <code>COLD</code> = straight line) followed by the stages</td>
+</tr>
+<tr>
+<td><code>repeats</code></td>
+<td>1</td>
+<td>Runs per pipeline and mission; the fastest is kept, to reduce timing noise</td>
+</tr>
+</tbody>
+</table>
+<p>Each label overrides <code>seed</code>, <code>stages</code> and <code>fc_from_uf</code> of the <code>pipeline</code> block. All pipelines solve exactly the same problem for a given mission: the scales, the cost references and the bounds of the flight time are computed from the mission, never from the seed.</p>
+<h2 id="36-the-aircraft-file">3.6 The aircraft file</h2>
+<p>The aircraft file groups the design data. The full list of fields, with units, is in <a href="../../code/aircraft-format/">Aircraft file format</a>; the bundled example is <a href="https://github.com/pablourioste/uavtraj-opt/blob/main/code/data/aircraft/generic_uav.json"><code>data/aircraft/generic_uav.json</code></a>, an 11 kg UAV with a 2.9 m span.</p>
+<table>
+<thead>
+<tr>
+<th>Group</th>
+<th>Content</th>
+<th>Where it enters the optimisation</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>mass</code></td>
+<td>Take-off, empty and fuel mass</td>
+<td>Initial mass; lower bound of the mass</td>
+</tr>
+<tr>
+<td><code>geometry</code></td>
+<td>Wing area, span, mean chord</td>
+<td>Aerodynamic forces and moments</td>
+</tr>
+<tr>
+<td><code>inertia</code></td>
+<td>Body-axis inertia</td>
+<td>FC rotational dynamics</td>
+</tr>
+<tr>
+<td><code>propulsion</code></td>
+<td>Sea-level power, propeller efficiency, specific fuel consumption, thrust-line offset</td>
+<td>Available thrust and power constraint; fuel flow</td>
+</tr>
+<tr>
+<td><code>envelope</code></td>
+<td>Speeds, minimum altitude, load factors, bank, pitch, flight-path and incidence limits</td>
+<td>Path constraints of both problems</td>
+</tr>
+<tr>
+<td><code>actuators</code></td>
+<td>Surface deflection limits, body-rate limits</td>
+<td>FC control bounds and rate constraints; UF bank-rate constraint</td>
+</tr>
+<tr>
+<td><code>aero</code></td>
+<td>Lift, drag polar, side force, roll, pitch and yaw derivatives</td>
+<td>FC uses all of them; UF uses the drag polar and the maximum lift coefficient</td>
+</tr>
+</tbody>
+</table>
+<p>The loader stops with a message that names the field when a required value is missing or inconsistent. It checks that:</p>
+<ul>
+<li><code>m_empty_kg + fuel_max_kg</code> does not exceed <code>m0_kg</code>, and all masses, lengths and inertias are positive;</li>
+<li>the inertia tensor is positive definite (<span class="arithmatex">\(I_{xx}I_{zz}-I_{xz}^2&gt;0\)</span>);</li>
+<li><code>eta_p</code> lies in (0, 1];</li>
+<li><code>alpha_min_deg &lt; alpha_max_deg</code>, and <code>n_min &lt; 1 &lt; n_max</code>;</li>
+<li>the lift slope and the induced-drag factor are positive, and <span class="arithmatex">\(C_L\)</span> at <code>alpha_max_deg</code> is positive;</li>
+<li><span class="arithmatex">\(C_{m\alpha}&lt;0\)</span> (static stability in pitch);</li>
+<li>the stall speed at sea level is below <code>V_ne</code>.</li>
+</ul>
+<p>Quantities such as the maximum lift coefficient, the stall speed at each altitude and mass, the available thrust and the best lift-to-drag speed are always derived from these data, never entered.</p>
+<p><strong>Checking a new aircraft.</strong> Point the case files of UC-01 and UC-05 at the new file and run them before any optimisation. UC-01 prints the derived performance; UC-05 draws the power curves, the flight envelope and the trim curves, which reveal unrealistic coefficients quickly (for example an elevator that cannot trim the aircraft at cruise speed).</p>
+<h2 id="37-checklist-before-running-a-new-case">3.7 Checklist before running a new case</h2>
+<ol>
+<li>The <code>end</code> position and both headings describe the mission you intend: north first, east second; heading clockwise from north.</li>
+<li>Every zone polygon is simple and its altitude band is the one you mean. A zone below the whole flight is ignored.</li>
+<li>Waypoints are listed in visiting order, and each tolerance is reachable with the aircraft's turn radius.</li>
+<li>The start and goal are outside every active zone plus its margin.</li>
+<li><code>V_mps</code> lies between the stall speed and <code>V_ne</code> at <code>h0_m</code> (UC-01 prints both).</li>
+<li><code>nodes_uf</code> and <code>nodes_fc</code> are large enough for the path length (section 6.10).</li>
+<li>The output folder is new, or you do not mind overwriting its contents.</li>
+</ol>
+<p><a href="../02-first-run/">← 2. First run</a> · <a href="../04-results/">Next: 4. Reading the results →</a></p>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+    
+      
+      <nav class="md-footer__inner md-grid" aria-label="Footer" >
+        
+          
+          <a href="../02-first-run/" class="md-footer__link md-footer__link--prev" aria-label="Previous: 2. First run">
+            <div class="md-footer__button md-icon">
+              
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+            </div>
+            <div class="md-footer__title">
+              <span class="md-footer__direction">
+                Previous
+              </span>
+              <div class="md-ellipsis">
+                2. First run
+              </div>
+            </div>
+          </a>
+        
+        
+          
+          <a href="../04-results/" class="md-footer__link md-footer__link--next" aria-label="Next: 4. Reading the results">
+            <div class="md-footer__title">
+              <span class="md-footer__direction">
+                Next
+              </span>
+              <div class="md-ellipsis">
+                4. Reading the results
+              </div>
+            </div>
+            <div class="md-footer__button md-icon">
+              
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M4 11v2h12l-5.5 5.5 1.42 1.42L19.84 12l-7.92-7.92L10.5 5.5 16 11z"/></svg>
+            </div>
+          </a>
+        
+      </nav>
+    
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      
+      <script id="__config" type="application/json">{"annotate": null, "base": "../..", "features": ["navigation.sections", "navigation.footer", "content.code.copy"], "search": "../../assets/javascripts/workers/search.a7633da7.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+    
+    
+      <script src="../../assets/javascripts/bundle.c21346df.min.js"></script>
+      
+        <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+      
+    
+  </body>
+</html>

@@ -1,0 +1,2310 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+        <meta name="description" content="Minimum-time / minimum-fuel trajectory optimisation with a Hybrid A* warm start (BSc thesis, UPC – ESEIAAT)">
+      
+      
+      
+      
+        <link rel="prev" href="../08-ipopt/">
+      
+      
+        <link rel="next" href="../10-troubleshooting/">
+      
+      
+        
+      
+      
+      <link rel="icon" href="../../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.8.0">
+    
+    
+      
+        <title>9. Example catalogue - Optimal 3D Trajectory Planning for a Fixed-Wing UAV</title>
+      
+    
+    
+      <link rel="stylesheet" href="../../assets/stylesheets/main.57a0d79d.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+    <script>__md_scope=new URL("../..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+  </head>
+  
+  
+    <body dir="ltr">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#9-example-catalogue" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+  
+
+<header class="md-header md-header--shadow" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href="../.." title="Optimal 3D Trajectory Planning for a Fixed-Wing UAV" class="md-header__button md-logo" aria-label="Optimal 3D Trajectory Planning for a Fixed-Wing UAV" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            Optimal 3D Trajectory Planning for a Fixed-Wing UAV
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              9. Example catalogue
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+      <div class="md-header__source">
+        <a href="https://github.com/pablourioste/uavtraj-opt" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"/></svg>
+  </div>
+  <div class="md-source__repository">
+    GitHub
+  </div>
+</a>
+      </div>
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+
+<nav class="md-nav md-nav--primary" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href="../.." title="Optimal 3D Trajectory Planning for a Fixed-Wing UAV" class="md-nav__button md-logo" aria-label="Optimal 3D Trajectory Planning for a Fixed-Wing UAV" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    Optimal 3D Trajectory Planning for a Fixed-Wing UAV
+  </label>
+  
+    <div class="md-nav__source">
+      <a href="https://github.com/pablourioste/uavtraj-opt" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"/></svg>
+  </div>
+  <div class="md-source__repository">
+    GitHub
+  </div>
+</a>
+    </div>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../.." class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Home
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+    
+  
+  
+  
+    
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2" checked>
+        
+          
+          <label class="md-nav__link" for="__nav_2" id="__nav_2_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    User guide
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_2_label" aria-expanded="true">
+          <label class="md-nav__title" for="__nav_2">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    User guide
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Contents
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../01-installation/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    1. Installation
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../02-first-run/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    2. First run
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../03-inputs/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    3. Input files
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../04-results/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    4. Reading the results
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../05-tutorial/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    5. Tutorial, first mission
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../06-optimisation-process/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    6. The optimisation process
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../07-formulation/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    7. Mathematical formulation
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../08-ipopt/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    8. Using IPOPT
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+    
+  
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    9. Example catalogue
+  
+
+    
+  </span>
+  
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    9. Example catalogue
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#overview" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Overview
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#uc-01-aircraft-report" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        UC-01: aircraft report
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#uc-02-trim" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        UC-02: trim
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#uc-03-open-loop-simulation" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        UC-03: open-loop simulation
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#uc-04-transcription-check" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        UC-04: transcription check
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#uc-05-design-charts" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        UC-05: design charts
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#uc-06-typical-design-scenarios" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        UC-06: typical design scenarios
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#uc-07-missions-with-no-fly-zones-and-waypoints" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        UC-07: missions with no-fly zones and waypoints
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#uc-08-optimal-missions" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        UC-08: optimal missions
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#uc-09-warm-start-benchmark" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        UC-09: warm-start benchmark
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#tutorial-first-mission" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Tutorial: first mission
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#choosing-a-starting-point-for-your-own-case" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Choosing a starting point for your own case
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../10-troubleshooting/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    10. Troubleshooting
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../11-extending/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    11. Using and extending the library
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3" >
+        
+          
+          <label class="md-nav__link" for="__nav_3" id="__nav_3_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Project
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Project
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../01-problem/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    1. Problem and requirements
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../02-state-of-the-art/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    2. State of the art
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../03-methodology/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    3. Methodology
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../04-design-decisions/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    4. Design decisions
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4" >
+        
+          
+          <label class="md-nav__link" for="__nav_4" id="__nav_4_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Theory
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_4_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_4">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Theory
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../05-ocp-theory/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    5. OCP and NLP
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../06-dynamics-uf/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    6. Point-mass dynamics (UF)
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../07-dynamics-fc/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    7. Rigid-body dynamics (FC)
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../08-transcription/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    8. Transcription
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../09-constraints/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    9. Constraints
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../10-cost-function/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    10. Cost function
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../11-warm-start/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    11. Warm start pipeline
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_5" >
+        
+          
+          <label class="md-nav__link" for="__nav_5" id="__nav_5_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Results
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_5_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_5">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Results
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../12-results-validation/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    12. Validation
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../13-results-penalties/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    13. Regularisation
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../14-results-warmstart/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    14. Warm-start benchmark
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../derivatives/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Derivatives: v1 and v2
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../15-conclusions/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    15. Conclusions
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_6" >
+        
+          
+          <label class="md-nav__link" for="__nav_6" id="__nav_6_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Code (public implementation)
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_6_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_6">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Code (public implementation)
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../code/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Overview and quick start
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../code/architecture/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Architecture
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../code/formulation/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Formulation in code
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../code/use-cases/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Use cases
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../code/examples/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Worked examples and design scenarios
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../code/aircraft-format/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Aircraft file format
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_7" >
+        
+          
+          <label class="md-nav__link" for="__nav_7" id="__nav_7_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Appendix
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_7_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_7">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Appendix
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../appendix-frames/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Coordinate frames
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../appendix-adjoint/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Adjoint method
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../appendix-msn012/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Aircraft MSN012
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../references/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    References
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#overview" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Overview
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#uc-01-aircraft-report" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        UC-01: aircraft report
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#uc-02-trim" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        UC-02: trim
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#uc-03-open-loop-simulation" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        UC-03: open-loop simulation
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#uc-04-transcription-check" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        UC-04: transcription check
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#uc-05-design-charts" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        UC-05: design charts
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#uc-06-typical-design-scenarios" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        UC-06: typical design scenarios
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#uc-07-missions-with-no-fly-zones-and-waypoints" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        UC-07: missions with no-fly zones and waypoints
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#uc-08-optimal-missions" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        UC-08: optimal missions
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#uc-09-warm-start-benchmark" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        UC-09: warm-start benchmark
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#tutorial-first-mission" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Tutorial: first mission
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#choosing-a-starting-point-for-your-own-case" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Choosing a starting point for your own case
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+  
+  
+
+
+<h1 id="9-example-catalogue">9. Example catalogue</h1>
+<p>The repository ships ten case files in <a href="https://github.com/pablourioste/uavtraj-opt/tree/main/code/data/cases"><code>code/data/cases/</code></a>. This chapter describes each one: what it demonstrates, which inputs matter, what to look at in the output, and where its results are discussed. The examples are listed in the order in which they build on each other, from the aircraft to the optimiser.</p>
+<p>All examples use the generic UAV of <a href="https://github.com/pablourioste/uavtraj-opt/blob/main/code/data/aircraft/generic_uav.json"><code>data/aircraft/generic_uav.json</code></a>: 11 kg, 2.9 m span, 800 W, cruise speed 25 m/s. Its mass, geometry, inertia and stability derivatives follow the Aerosonde-class model of Beard and McLain (2012); its drag polar, propulsion and envelope limits are illustrative values.</p>
+<h2 id="overview">Overview</h2>
+<table>
+<thead>
+<tr>
+<th>Example</th>
+<th>Purpose</th>
+<th style="text-align: center;">IPOPT</th>
+<th>Input reference</th>
+<th>Results</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>UC-01</td>
+<td>Check an aircraft file and its derived performance</td>
+<td style="text-align: center;"></td>
+<td><a href="../../code/use-cases/#uc-01-aircraft-report">UC-01</a></td>
+<td><a href="../../code/examples/#uc-01-aircraft-report">UC-01</a></td>
+</tr>
+<tr>
+<td>UC-02</td>
+<td>Trim both models in steady flight</td>
+<td style="text-align: center;"></td>
+<td><a href="../../code/use-cases/#uc-02-trim">UC-02</a></td>
+<td><a href="../../code/examples/#uc-02-trim">UC-02</a></td>
+</tr>
+<tr>
+<td>UC-03</td>
+<td>Simulate both models open loop</td>
+<td style="text-align: center;"></td>
+<td><a href="../../code/use-cases/#uc-03-open-loop-simulation">UC-03</a></td>
+<td><a href="../../code/examples/#uc-03-open-loop-simulation">UC-03</a></td>
+</tr>
+<tr>
+<td>UC-04</td>
+<td>Inspect the collocated NLP: size, sparsity, derivatives</td>
+<td style="text-align: center;"></td>
+<td><a href="../../code/use-cases/#uc-04-transcription-check">UC-04</a></td>
+<td><a href="../../code/examples/#uc-04-the-nlp-an-optimiser-sees">UC-04</a></td>
+</tr>
+<tr>
+<td>UC-05</td>
+<td>Draw the design charts of the aircraft</td>
+<td style="text-align: center;"></td>
+<td><a href="../../code/use-cases/#uc-05-design-charts">UC-05</a></td>
+<td><a href="../../code/examples/#uc-05-design-charts">UC-05</a></td>
+</tr>
+<tr>
+<td>UC-06</td>
+<td>Fly four reference manoeuvres with guidance laws</td>
+<td style="text-align: center;"></td>
+<td><a href="../../code/use-cases/#uc-06-typical-design-scenarios">UC-06</a></td>
+<td><a href="../../code/examples/#uc-06-typical-design-scenarios">UC-06</a></td>
+</tr>
+<tr>
+<td>UC-07</td>
+<td>Plan and fly missions around no-fly zones (the warm starts)</td>
+<td style="text-align: center;"></td>
+<td><a href="../../code/use-cases/#uc-07-missions-with-no-fly-zones-and-waypoints">UC-07</a></td>
+<td><a href="../../code/examples/#uc-07-missions-with-no-fly-zones-and-waypoints">UC-07</a></td>
+</tr>
+<tr>
+<td>UC-08</td>
+<td>Optimise the same missions: warm start → UF → FC</td>
+<td style="text-align: center;">✓</td>
+<td><a href="../03-inputs/">Chapter 3</a></td>
+<td><a href="../../code/examples/#uc-08-optimal-missions">UC-08</a></td>
+</tr>
+<tr>
+<td>UC-09</td>
+<td>Compare pipelines on identical problems</td>
+<td style="text-align: center;">✓</td>
+<td><a href="../03-inputs/#35-benchmark-case-files-uc-09">Section 3.5</a></td>
+<td><a href="../../code/examples/#uc-09-warm-start-benchmark">UC-09</a></td>
+</tr>
+<tr>
+<td>Tutorial</td>
+<td>Three missions of increasing difficulty</td>
+<td style="text-align: center;">✓</td>
+<td><a href="../03-inputs/">Chapter 3</a></td>
+<td><a href="../05-tutorial/">Chapter 5</a></td>
+</tr>
+</tbody>
+</table>
+<h2 id="uc-01-aircraft-report">UC-01: aircraft report</h2>
+<p><strong>File.</strong> <a href="https://github.com/pablourioste/uavtraj-opt/blob/main/code/data/cases/uc01_aircraft_report.json"><code>uc01_aircraft_report.json</code></a>. <strong>Key input:</strong> <code>altitudes_m</code>.</p>
+<p>Prints the aircraft data and the quantities derived from it: maximum lift coefficient, induced-drag factor, maximum lift-to-drag ratio, and for each altitude the density, stall speed, best lift-to-drag speed, available power and thrust at cruise speed.</p>
+<p><strong>What to look at.</strong> This is the first case to run with a new aircraft. The stall speed and the best lift-to-drag speed bracket the speeds a minimum-fuel optimum will fly (20.8 m/s at sea level for the generic UAV, which is where the UC-08 and tutorial optima settle). The minimum turn radius at cruise speed and maximum bank (76 m) tells you how tight the missions can be.</p>
+<h2 id="uc-02-trim">UC-02: trim</h2>
+<p><strong>File.</strong> <a href="https://github.com/pablourioste/uavtraj-opt/blob/main/code/data/cases/uc02_trim.json"><code>uc02_trim.json</code></a>. <strong>Key input:</strong> <code>flight</code> (speed, altitude, flight-path angle, bank).</p>
+<p>Trims the point-mass model in closed form and the rigid-body model by Newton iterations on the force and moment balance.</p>
+<p><strong>What to look at.</strong> Both models need the same thrust (9.27 N against 9.25 N at 25 m/s), because they share the lift and drag description. The 6-DoF trim (incidence 3.2°, elevator -8.1°) is the initial state of every FC stage (section 7.6). If the 6-DoF trim fails to converge for your aircraft, the FC stage cannot start.</p>
+<h2 id="uc-03-open-loop-simulation">UC-03: open-loop simulation</h2>
+<p><strong>File.</strong> <a href="https://github.com/pablourioste/uavtraj-opt/blob/main/code/data/cases/uc03_simulation.json"><code>uc03_simulation.json</code></a>. <strong>Key inputs:</strong> <code>duration_s</code>, <code>dt_s</code>, <code>uf.bank_cmd_deg</code>, <code>fc.elevator_doublet_deg</code>.</p>
+<p>Integrates both models with RK4: the point mass rolls into a 30° coordinated turn; the rigid body starts from trim and receives an elevator doublet.</p>
+<p><strong>What to look at.</strong> The point-mass turn rate matches <span class="arithmatex">\(g\tan\phi/V\)</span> at constant altitude. The 6-DoF response shows the two longitudinal modes: the short period (a fast incidence oscillation that dies out in about 1 s) and the phugoid (a slow exchange of speed and altitude with a period of about 12 s). A new aircraft whose doublet response diverges is unstable, and its 6-DoF optimisation will be hard.</p>
+<h2 id="uc-04-transcription-check">UC-04: transcription check</h2>
+<p><strong>File.</strong> <a href="https://github.com/pablourioste/uavtraj-opt/blob/main/code/data/cases/uc04_transcription.json"><code>uc04_transcription.json</code></a>. <strong>Key inputs:</strong> <code>mission</code> (a straight 3.1 km leg with a 100 m climb), <code>N</code> (list of node counts).</p>
+<p>Builds the point-mass collocation problem for several node counts and reports its size, its sparsity, the defects of a cold start and of a trimmed straight line, and the time to compute the defect Jacobian analytically and by finite differences.</p>
+<p><strong>What to look at.</strong> This example makes chapter 7 concrete. The number of variables is <span class="arithmatex">\(1+11N\)</span>; only 0.44 % of the Jacobian entries are nonzero at <span class="arithmatex">\(N=200\)</span>; the analytic Jacobian agrees with finite differences to about <span class="arithmatex">\(10^{-10}\)</span> and is 57 to 487 times faster, because finite differences cost one full evaluation per variable. A cold start violates the dynamics by order one, a trimmed line not at all: the reason for the warm start (section 6.1).</p>
+<h2 id="uc-05-design-charts">UC-05: design charts</h2>
+<p><strong>File.</strong> <a href="https://github.com/pablourioste/uavtraj-opt/blob/main/code/data/cases/uc05_design_charts.json"><code>uc05_design_charts.json</code></a>. <strong>Key inputs:</strong> <code>altitudes_m</code>, <code>trim_altitude_m</code>, <code>turn_speeds_mps</code>.</p>
+<p>Computes power curves, the flight envelope with ceilings, 6-DoF trim curves against speed, and level-turn performance.</p>
+<p><strong>What to look at.</strong> The envelope (stall speed to maximum level speed, 15.1 to 36.9 m/s at sea level) bounds what the optimiser can do; the minimum-time tutorial optimum flies at 39 m/s only because it dives. The trim curves show that elevator authority, not stall, sets the minimum trimmed speed of this aircraft. Run this case for every new aircraft: unrealistic coefficients show up here as unreachable trim or odd power curves.</p>
+<h2 id="uc-06-typical-design-scenarios">UC-06: typical design scenarios</h2>
+<p><strong>File.</strong> <a href="https://github.com/pablourioste/uavtraj-opt/blob/main/code/data/cases/uc06_design_scenarios.json"><code>uc06_design_scenarios.json</code></a>. <strong>Key inputs:</strong> <code>scenarios</code> (straight or 180° turn, level or +200 m climb), <code>speed_sweep_mps</code>, <code>nodes</code>.</p>
+<p>Flies four manoeuvres with the guidance laws of the warm start, with both models, and sweeps the commanded speed to find the least-fuel speed.</p>
+<p><strong>What to look at.</strong> The two models agree to within 0.2–67 m and burn the same fuel. Climbs are power-limited. The least-fuel speed (22 m/s) sits next to the best lift-to-drag speed, which anticipates the minimum-fuel optima of UC-08. The defects of the flown trajectories on 60 and 240 nodes show that the mesh must resolve the fastest manoeuvre (section 6.10).</p>
+<h2 id="uc-07-missions-with-no-fly-zones-and-waypoints">UC-07: missions with no-fly zones and waypoints</h2>
+<p><strong>File.</strong> <a href="https://github.com/pablourioste/uavtraj-opt/blob/main/code/data/cases/uc07_nfz_missions.json"><code>uc07_nfz_missions.json</code></a>. <strong>Key inputs:</strong> <code>missions</code> (same format as UC-08), <code>planner</code>, <code>nodes</code>.</p>
+<p>Plans each mission with Hybrid A* and flies the path with both models. These are exactly the warm starts of UC-08.</p>
+<table>
+<thead>
+<tr>
+<th>Mission</th>
+<th>Content</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>M-01</td>
+<td>One zone on the direct route</td>
+</tr>
+<tr>
+<td>M-02</td>
+<td>Slalom between two zones</td>
+</tr>
+<tr>
+<td>M-03</td>
+<td>Two waypoints, no zone</td>
+</tr>
+<tr>
+<td>M-04</td>
+<td>One zone, one waypoint, a 150 m climb and a final heading change; a low zone on the direct route is overflown</td>
+</tr>
+</tbody>
+</table>
+<p><strong>What to look at.</strong> The flown trajectories keep 11–16 m outside every margin and pass within about 1 m of each waypoint. The column <code>nfzCold</code> shows how far a straight-line cold start would intrude into the zones (200–394 m inside): the situation the warm start avoids. Use this case to check a new mission's geometry before optimising it: if the planner finds no path here, UC-08 will start from a straight line.</p>
+<h2 id="uc-08-optimal-missions">UC-08: optimal missions</h2>
+<p><strong>File.</strong> <a href="https://github.com/pablourioste/uavtraj-opt/blob/main/code/data/cases/uc08_optimal_missions.json"><code>uc08_optimal_missions.json</code></a>. <strong>Key inputs:</strong> the whole <code>pipeline</code> block and <code>missions</code> (chapter 3).</p>
+<p>The four UC-07 missions, optimised for minimum fuel with the full pipeline: warm start, point-mass optimum on 60 nodes, projection, 6-DoF optimum on 60 nodes, verification.</p>
+<p><strong>What to look at.</strong> Every stage converges and passes the verification; the optimal paths keep 9–12 m beyond every margin between nodes; the two models agree to 0.5 % in time and 0.2 % in fuel. The optima slow to the best lift-to-drag speed, pass the waypoints on their tolerance circles, and shorten the planner's path by hugging the zone corners. Mission M-04 is the richest: it combines a zone, a waypoint, a climb and an overflown zone. Chapter 4 explains every output of this case, and <a href="../../code/examples/#uc-08-optimal-missions">Worked examples: UC-08</a> discusses the results with figures.</p>
+<p><strong>To adapt it.</strong> Copy it under a new name, replace the missions with yours, and keep the pipeline block (chapter 5 shows the procedure).</p>
+<h2 id="uc-09-warm-start-benchmark">UC-09: warm-start benchmark</h2>
+<p><strong>File.</strong> <a href="https://github.com/pablourioste/uavtraj-opt/blob/main/code/data/cases/uc09_warmstart_benchmark.json"><code>uc09_warmstart_benchmark.json</code></a>. <strong>Key inputs:</strong> <code>pipelines</code>, <code>repeats</code>, and the same <code>pipeline</code> and <code>missions</code> as UC-08.</p>
+<p>Solves each mission with four pipelines: <code>COLD&gt;UF</code>, <code>WS&gt;UF</code>, <code>WS&gt;FC</code> and <code>WS&gt;UF&gt;FC</code>. All pipelines solve identical problems, so their iterations, times and optima can be compared directly.</p>
+<p><strong>What to look at.</strong> With this small aircraft, the cold start still converges, but needs up to twice the iterations and in M-04 reaches a worse local optimum (+3.9 % cost). Seeding the FC stage with the UF optimum or with the FC autopilot run leads to the same 6-DoF optimum. This is the public counterpart of the thesis benchmark (<a href="../../14-results-warmstart/">14. Warm-start benchmark</a>), where the cold start failed in 3 of 8 scenarios.</p>
+<p><strong>To adapt it.</strong> Put your own missions in it to measure, on your problem, whether the warm start and the UF stage pay off.</p>
+<h2 id="tutorial-first-mission">Tutorial: first mission</h2>
+<p><strong>File.</strong> <a href="https://github.com/pablourioste/uavtraj-opt/blob/main/code/data/cases/tutorial_first_mission.json"><code>tutorial_first_mission.json</code></a>. <strong>Key inputs:</strong> three missions T-01 (empty airspace), T-02 (one zone), T-03 (zone, waypoint and 100 m climb).</p>
+<p>The worked example of chapter 5, written with every pipeline setting explicit so that it can serve as a template. It is not run by <code>run.sh</code>; run it by hand and plot it with <code>python utils/plot_results.py --optimal output/tutorial</code>.</p>
+<h2 id="choosing-a-starting-point-for-your-own-case">Choosing a starting point for your own case</h2>
+<table>
+<thead>
+<tr>
+<th>You want to</th>
+<th>Start from</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Check a new aircraft</td>
+<td>UC-01, then UC-05, then UC-02</td>
+</tr>
+<tr>
+<td>Optimise one or more missions</td>
+<td>The tutorial file or UC-08</td>
+</tr>
+<tr>
+<td>Check that a mission's geometry is feasible before optimising</td>
+<td>UC-07 with your missions</td>
+</tr>
+<tr>
+<td>Study minimum time against minimum fuel</td>
+<td>The tutorial file, varying <code>alpha</code> (section 5.7)</td>
+</tr>
+<tr>
+<td>Measure the value of the warm start on your missions</td>
+<td>UC-09</td>
+</tr>
+<tr>
+<td>Study discretisation and derivatives</td>
+<td>UC-04</td>
+</tr>
+</tbody>
+</table>
+<p><a href="../08-ipopt/">← 8. Using IPOPT</a> · <a href="../10-troubleshooting/">Next: 10. Troubleshooting →</a></p>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+    
+      
+      <nav class="md-footer__inner md-grid" aria-label="Footer" >
+        
+          
+          <a href="../08-ipopt/" class="md-footer__link md-footer__link--prev" aria-label="Previous: 8. Using IPOPT">
+            <div class="md-footer__button md-icon">
+              
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+            </div>
+            <div class="md-footer__title">
+              <span class="md-footer__direction">
+                Previous
+              </span>
+              <div class="md-ellipsis">
+                8. Using IPOPT
+              </div>
+            </div>
+          </a>
+        
+        
+          
+          <a href="../10-troubleshooting/" class="md-footer__link md-footer__link--next" aria-label="Next: 10. Troubleshooting">
+            <div class="md-footer__title">
+              <span class="md-footer__direction">
+                Next
+              </span>
+              <div class="md-ellipsis">
+                10. Troubleshooting
+              </div>
+            </div>
+            <div class="md-footer__button md-icon">
+              
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M4 11v2h12l-5.5 5.5 1.42 1.42L19.84 12l-7.92-7.92L10.5 5.5 16 11z"/></svg>
+            </div>
+          </a>
+        
+      </nav>
+    
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      
+      <script id="__config" type="application/json">{"annotate": null, "base": "../..", "features": ["navigation.sections", "navigation.footer", "content.code.copy"], "search": "../../assets/javascripts/workers/search.a7633da7.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+    
+    
+      <script src="../../assets/javascripts/bundle.c21346df.min.js"></script>
+      
+        <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+      
+    
+  </body>
+</html>

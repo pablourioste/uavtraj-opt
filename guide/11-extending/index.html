@@ -1,0 +1,2332 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+        <meta name="description" content="Minimum-time / minimum-fuel trajectory optimisation with a Hybrid A* warm start (BSc thesis, UPC – ESEIAAT)">
+      
+      
+      
+      
+        <link rel="prev" href="../10-troubleshooting/">
+      
+      
+        <link rel="next" href="../../01-problem/">
+      
+      
+        
+      
+      
+      <link rel="icon" href="../../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.8.0">
+    
+    
+      
+        <title>11. Using and extending the library - Optimal 3D Trajectory Planning for a Fixed-Wing UAV</title>
+      
+    
+    
+      <link rel="stylesheet" href="../../assets/stylesheets/main.57a0d79d.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+    <script>__md_scope=new URL("../..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+  </head>
+  
+  
+    <body dir="ltr">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#11-using-and-extending-the-library" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+  
+
+<header class="md-header md-header--shadow" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href="../.." title="Optimal 3D Trajectory Planning for a Fixed-Wing UAV" class="md-header__button md-logo" aria-label="Optimal 3D Trajectory Planning for a Fixed-Wing UAV" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            Optimal 3D Trajectory Planning for a Fixed-Wing UAV
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              11. Using and extending the library
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+      <div class="md-header__source">
+        <a href="https://github.com/pablourioste/uavtraj-opt" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"/></svg>
+  </div>
+  <div class="md-source__repository">
+    GitHub
+  </div>
+</a>
+      </div>
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+
+<nav class="md-nav md-nav--primary" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href="../.." title="Optimal 3D Trajectory Planning for a Fixed-Wing UAV" class="md-nav__button md-logo" aria-label="Optimal 3D Trajectory Planning for a Fixed-Wing UAV" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    Optimal 3D Trajectory Planning for a Fixed-Wing UAV
+  </label>
+  
+    <div class="md-nav__source">
+      <a href="https://github.com/pablourioste/uavtraj-opt" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"/></svg>
+  </div>
+  <div class="md-source__repository">
+    GitHub
+  </div>
+</a>
+    </div>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../.." class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Home
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+    
+  
+  
+  
+    
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2" checked>
+        
+          
+          <label class="md-nav__link" for="__nav_2" id="__nav_2_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    User guide
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_2_label" aria-expanded="true">
+          <label class="md-nav__title" for="__nav_2">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    User guide
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Contents
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../01-installation/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    1. Installation
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../02-first-run/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    2. First run
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../03-inputs/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    3. Input files
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../04-results/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    4. Reading the results
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../05-tutorial/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    5. Tutorial, first mission
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../06-optimisation-process/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    6. The optimisation process
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../07-formulation/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    7. Mathematical formulation
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../08-ipopt/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    8. Using IPOPT
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../09-examples/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    9. Example catalogue
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../10-troubleshooting/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    10. Troubleshooting
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+    
+  
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    11. Using and extending the library
+  
+
+    
+  </span>
+  
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    11. Using and extending the library
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#111-the-library" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        11.1 The library
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#112-linking-it-from-your-project" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        11.2 Linking it from your project
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#113-running-the-pipeline-from-c" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        11.3 Running the pipeline from C++
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#114-solving-one-stage-by-hand" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        11.4 Solving one stage by hand
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#115-your-own-problem-with-ipopt" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        11.5 Your own problem with IPOPT
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#116-adding-constraints" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        11.6 Adding constraints
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="11.6 Adding constraints">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#a-new-kind-of-environment-constraint" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        A new kind of environment constraint
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#a-new-boundary-condition" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        A new boundary condition
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#117-tests-and-formatting" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        11.7 Tests and formatting
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3" >
+        
+          
+          <label class="md-nav__link" for="__nav_3" id="__nav_3_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Project
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Project
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../01-problem/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    1. Problem and requirements
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../02-state-of-the-art/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    2. State of the art
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../03-methodology/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    3. Methodology
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../04-design-decisions/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    4. Design decisions
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4" >
+        
+          
+          <label class="md-nav__link" for="__nav_4" id="__nav_4_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Theory
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_4_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_4">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Theory
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../05-ocp-theory/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    5. OCP and NLP
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../06-dynamics-uf/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    6. Point-mass dynamics (UF)
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../07-dynamics-fc/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    7. Rigid-body dynamics (FC)
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../08-transcription/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    8. Transcription
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../09-constraints/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    9. Constraints
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../10-cost-function/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    10. Cost function
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../11-warm-start/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    11. Warm start pipeline
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_5" >
+        
+          
+          <label class="md-nav__link" for="__nav_5" id="__nav_5_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Results
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_5_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_5">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Results
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../12-results-validation/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    12. Validation
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../13-results-penalties/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    13. Regularisation
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../14-results-warmstart/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    14. Warm-start benchmark
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../derivatives/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Derivatives: v1 and v2
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../15-conclusions/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    15. Conclusions
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_6" >
+        
+          
+          <label class="md-nav__link" for="__nav_6" id="__nav_6_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Code (public implementation)
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_6_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_6">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Code (public implementation)
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../code/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Overview and quick start
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../code/architecture/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Architecture
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../code/formulation/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Formulation in code
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../code/use-cases/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Use cases
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../code/examples/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Worked examples and design scenarios
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../code/aircraft-format/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Aircraft file format
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_7" >
+        
+          
+          <label class="md-nav__link" for="__nav_7" id="__nav_7_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Appendix
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_7_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_7">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Appendix
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../appendix-frames/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Coordinate frames
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../appendix-adjoint/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Adjoint method
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../appendix-msn012/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Aircraft MSN012
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../references/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    References
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#111-the-library" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        11.1 The library
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#112-linking-it-from-your-project" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        11.2 Linking it from your project
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#113-running-the-pipeline-from-c" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        11.3 Running the pipeline from C++
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#114-solving-one-stage-by-hand" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        11.4 Solving one stage by hand
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#115-your-own-problem-with-ipopt" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        11.5 Your own problem with IPOPT
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#116-adding-constraints" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        11.6 Adding constraints
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="11.6 Adding constraints">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#a-new-kind-of-environment-constraint" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        A new kind of environment constraint
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#a-new-boundary-condition" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        A new boundary condition
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#117-tests-and-formatting" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        11.7 Tests and formatting
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+  
+  
+
+
+<h1 id="11-using-and-extending-the-library">11. Using and extending the library</h1>
+<p>Everything the <code>ofc</code> program does is available as a C++ library, <code>ofc_core</code>. This chapter shows how to link it, how to run the pipeline or a single optimisation stage from your own code, how to hand IPOPT a problem of your own, and how to add new constraints.</p>
+<h2 id="111-the-library">11.1 The library</h2>
+<p><code>ofc_core</code> is a static library built from every source in <code>code/src/</code> except <code>main.cpp</code>. Its public headers are in <code>code/include/ofc/</code>, one per module; <a href="../../code/architecture/">Architecture</a> shows how they depend on each other.</p>
+<table>
+<thead>
+<tr>
+<th>Namespace</th>
+<th>Header</th>
+<th>Content</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>ofc</code></td>
+<td><code>aircraft.hpp</code>, <code>mission.hpp</code>, <code>types.hpp</code></td>
+<td><code>Aircraft</code> (loading, validation, derived performance), <code>MissionSpec</code>, vectors and rotations</td>
+</tr>
+<tr>
+<td><code>ofc::isa</code></td>
+<td><code>atmosphere.hpp</code></td>
+<td>Standard atmosphere</td>
+</tr>
+<tr>
+<td><code>ofc::uf</code>, <code>ofc::fc</code></td>
+<td><code>point_mass.hpp</code>, <code>rigid_body.hpp</code></td>
+<td>The two models: <code>rhs</code>, <code>uf::jacobian</code>, air data, coefficients</td>
+</tr>
+<tr>
+<td><code>ofc::trim</code>, <code>ofc::num</code>, <code>ofc::perf</code></td>
+<td><code>trim.hpp</code>, <code>numerics.hpp</code>, <code>performance.hpp</code></td>
+<td>Trim, RK4 and Newton, point performance</td>
+</tr>
+<tr>
+<td><code>ofc::env</code>, <code>ofc::plan</code></td>
+<td><code>environment.hpp</code>, <code>planner.hpp</code></td>
+<td>No-fly zones and waypoints, Dubins paths and Hybrid A*</td>
+</tr>
+<tr>
+<td><code>ofc::scenario</code>, <code>ofc::ws</code></td>
+<td><code>scenario.hpp</code>, <code>warm_start.hpp</code></td>
+<td>Guidance laws, warm start, cold starts, UF → FC projection</td>
+</tr>
+<tr>
+<td><code>ofc::ocp</code></td>
+<td><code>collocation.hpp</code>, <code>ocp_problem.hpp</code>, <code>ocp_uf.hpp</code>, <code>ocp_fc.hpp</code></td>
+<td>Decision-vector layout, collocation, the two optimal-control problems</td>
+</tr>
+<tr>
+<td><code>ofc::nlp</code></td>
+<td><code>nlp.hpp</code>, <code>solver.hpp</code></td>
+<td>The <code>Problem</code> interface, <code>verify</code>, <code>solve</code> (IPOPT) and its options</td>
+</tr>
+<tr>
+<td><code>ofc::pipeline</code></td>
+<td><code>pipeline.hpp</code></td>
+<td><code>run</code>: the staged optimisation of one mission, and the post-checks</td>
+</tr>
+<tr>
+<td><code>ofc::io</code></td>
+<td><code>io.hpp</code></td>
+<td>JSON input, CSV and JSON output</td>
+</tr>
+</tbody>
+</table>
+<h2 id="112-linking-it-from-your-project">11.2 Linking it from your project</h2>
+<p>The simplest way is to add the <code>code/</code> folder as a CMake subdirectory:</p>
+<div class="highlight"><pre><span></span><code><span class="nb">cmake_minimum_required</span><span class="p">(</span><span class="s">VERSION</span><span class="w"> </span><span class="s">3.14</span><span class="p">)</span>
+<span class="nb">project</span><span class="p">(</span><span class="s">my_app</span><span class="w"> </span><span class="s">LANGUAGES</span><span class="w"> </span><span class="s">CXX</span><span class="p">)</span>
+
+<span class="nb">set</span><span class="p">(</span><span class="s">OFC_BUILD_TESTS</span><span class="w"> </span><span class="s">OFF</span><span class="w"> </span><span class="s">CACHE</span><span class="w"> </span><span class="s">BOOL</span><span class="w"> </span><span class="s2">""</span><span class="w"> </span><span class="s">FORCE</span><span class="p">)</span><span class="w">        </span><span class="c"># the library's tests are not needed here</span>
+<span class="nb">add_subdirectory</span><span class="p">(</span><span class="s">path/to/uavtraj-opt/code</span><span class="w"> </span><span class="s">ofc</span><span class="p">)</span>
+
+<span class="nb">add_executable</span><span class="p">(</span><span class="s">my_app</span><span class="w"> </span><span class="s">main.cpp</span><span class="p">)</span>
+<span class="nb">target_link_libraries</span><span class="p">(</span><span class="s">my_app</span><span class="w"> </span><span class="s">PRIVATE</span><span class="w"> </span><span class="s">ofc_core</span><span class="p">)</span><span class="w">       </span><span class="c"># headers, C++17 and IPOPT come with it</span>
+</code></pre></div>
+<p>IPOPT is found exactly as in chapter 1, and <code>OFC_IPOPT=ON</code> can be set before <code>add_subdirectory</code> to make it mandatory. On Windows with the prebuilt IPOPT, the IPOPT DLLs must be next to your executable or on <code>PATH</code>; for example:</p>
+<div class="highlight"><pre><span></span><code><span class="nb">file</span><span class="p">(</span><span class="s">GLOB</span><span class="w"> </span><span class="s">IPOPT_DLLS</span><span class="w"> </span><span class="s2">"$ENV{IPOPT_DIR}/bin/*.dll"</span><span class="p">)</span>
+<span class="nb">add_custom_command</span><span class="p">(</span><span class="s">TARGET</span><span class="w"> </span><span class="s">my_app</span><span class="w"> </span><span class="s">POST_BUILD</span>
+<span class="w">                   </span><span class="s">COMMAND</span><span class="w"> </span><span class="o">${</span><span class="nv">CMAKE_COMMAND</span><span class="o">}</span><span class="w"> </span><span class="s">-E</span><span class="w"> </span><span class="s">copy_if_different</span><span class="w"> </span><span class="o">${</span><span class="nv">IPOPT_DLLS</span><span class="o">}</span><span class="w"> </span><span class="o">$&lt;</span><span class="nv">TARGET_FILE_DIR:my_app</span><span class="o">&gt;</span><span class="p">)</span>
+</code></pre></div>
+<p>The examples below load <code>data/aircraft/generic_uav.json</code> and <code>data/cases/tutorial_first_mission.json</code> with relative paths, so run them from <code>code/</code>. Both were compiled and run against the repository as described here; their output is shown after each listing.</p>
+<h2 id="113-running-the-pipeline-from-c">11.3 Running the pipeline from C++</h2>
+<div class="highlight"><pre><span></span><code><span class="cp">#include</span><span class="w"> </span><span class="cpf">&lt;cstdio&gt;</span>
+
+<span class="cp">#include</span><span class="w"> </span><span class="cpf">"ofc/aircraft.hpp"</span>
+<span class="cp">#include</span><span class="w"> </span><span class="cpf">"ofc/io.hpp"</span>
+<span class="cp">#include</span><span class="w"> </span><span class="cpf">"ofc/mission.hpp"</span>
+<span class="cp">#include</span><span class="w"> </span><span class="cpf">"ofc/pipeline.hpp"</span>
+
+<span class="k">using</span><span class="w"> </span><span class="k">namespace</span><span class="w"> </span><span class="nn">ofc</span><span class="p">;</span>
+
+<span class="kt">int</span><span class="w"> </span><span class="nf">main</span><span class="p">()</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="k">const</span><span class="w"> </span><span class="n">Aircraft</span><span class="w"> </span><span class="n">ac</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">Aircraft</span><span class="o">::</span><span class="n">fromFile</span><span class="p">(</span><span class="s">"data/aircraft/generic_uav.json"</span><span class="p">);</span>
+<span class="w">    </span><span class="k">const</span><span class="w"> </span><span class="n">nlohmann</span><span class="o">::</span><span class="n">json</span><span class="w"> </span><span class="n">c</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">io</span><span class="o">::</span><span class="n">readJson</span><span class="p">(</span><span class="s">"data/cases/tutorial_first_mission.json"</span><span class="p">);</span>
+<span class="w">    </span><span class="k">const</span><span class="w"> </span><span class="n">MissionSpec</span><span class="w"> </span><span class="n">m</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">MissionSpec</span><span class="o">::</span><span class="n">fromJson</span><span class="p">(</span><span class="n">c</span><span class="p">.</span><span class="n">at</span><span class="p">(</span><span class="s">"missions"</span><span class="p">).</span><span class="n">at</span><span class="p">(</span><span class="mi">1</span><span class="p">),</span><span class="w"> </span><span class="n">ac</span><span class="p">);</span><span class="w"> </span><span class="c1">// T-02</span>
+
+<span class="w">    </span><span class="n">pipeline</span><span class="o">::</span><span class="n">Config</span><span class="w"> </span><span class="n">cfg</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">pipeline</span><span class="o">::</span><span class="n">Config</span><span class="o">::</span><span class="n">fromJson</span><span class="p">(</span><span class="n">c</span><span class="p">.</span><span class="n">at</span><span class="p">(</span><span class="s">"pipeline"</span><span class="p">));</span>
+<span class="w">    </span><span class="n">cfg</span><span class="p">.</span><span class="n">alpha</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mf">0.0</span><span class="p">;</span><span class="w"> </span><span class="c1">// minimum time instead of minimum fuel</span>
+
+<span class="w">    </span><span class="k">const</span><span class="w"> </span><span class="n">pipeline</span><span class="o">::</span><span class="n">Result</span><span class="w"> </span><span class="n">r</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">pipeline</span><span class="o">::</span><span class="n">run</span><span class="p">(</span><span class="n">ac</span><span class="p">,</span><span class="w"> </span><span class="n">m</span><span class="p">,</span><span class="w"> </span><span class="n">cfg</span><span class="p">);</span>
+<span class="w">    </span><span class="n">std</span><span class="o">::</span><span class="n">printf</span><span class="p">(</span><span class="s">"UF %s in %d iterations: t_f = %.1f s</span><span class="se">\n</span><span class="s">"</span><span class="p">,</span><span class="w"> </span><span class="n">r</span><span class="p">.</span><span class="n">uf</span><span class="p">.</span><span class="n">status</span><span class="p">.</span><span class="n">c_str</span><span class="p">(),</span><span class="w"> </span><span class="n">r</span><span class="p">.</span><span class="n">uf</span><span class="p">.</span><span class="n">iterations</span><span class="p">,</span><span class="w"> </span><span class="n">r</span><span class="p">.</span><span class="n">ufOpt</span><span class="p">.</span><span class="n">tf</span><span class="p">);</span>
+<span class="w">    </span><span class="n">std</span><span class="o">::</span><span class="n">printf</span><span class="p">(</span><span class="s">"FC %s in %d iterations: t_f = %.1f s</span><span class="se">\n</span><span class="s">"</span><span class="p">,</span><span class="w"> </span><span class="n">r</span><span class="p">.</span><span class="n">fc</span><span class="p">.</span><span class="n">status</span><span class="p">.</span><span class="n">c_str</span><span class="p">(),</span><span class="w"> </span><span class="n">r</span><span class="p">.</span><span class="n">fc</span><span class="p">.</span><span class="n">iterations</span><span class="p">,</span><span class="w"> </span><span class="n">r</span><span class="p">.</span><span class="n">fcOpt</span><span class="p">.</span><span class="n">tf</span><span class="p">);</span>
+<span class="w">    </span><span class="n">std</span><span class="o">::</span><span class="n">printf</span><span class="p">(</span><span class="s">"FC verification: %s</span><span class="se">\n</span><span class="s">"</span><span class="p">,</span><span class="w"> </span><span class="n">r</span><span class="p">.</span><span class="n">fc</span><span class="p">.</span><span class="n">check</span><span class="p">.</span><span class="n">summary</span><span class="p">().</span><span class="n">c_str</span><span class="p">());</span>
+<span class="w">    </span><span class="k">return</span><span class="w"> </span><span class="n">r</span><span class="p">.</span><span class="n">ok</span><span class="p">()</span><span class="w"> </span><span class="o">?</span><span class="w"> </span><span class="mi">0</span><span class="w"> </span><span class="o">:</span><span class="w"> </span><span class="mi">1</span><span class="p">;</span>
+<span class="p">}</span>
+</code></pre></div>
+<div class="highlight"><pre><span></span><code>UF solved in 36 iterations: t_f = 90.4 s
+FC acceptable in 78 iterations: t_f = 90.0 s
+FC verification: dynamics ok | boundary ok | envelope ok | environment ok | bounds ok
+</code></pre></div>
+<p><code>pipeline::Config</code> holds every setting of the <code>pipeline</code> block (section 3.4) as a C++ member: <code>seed</code>, <code>uf</code>, <code>fc</code>, <code>fcFromUf</code>, <code>nodesUf</code>, <code>nodesFc</code>, <code>alpha</code>, <code>betaControl</code>, <code>betaState</code>, <code>sideslipMax</code>, <code>warmStart</code>, <code>solver</code>, <code>verifyTol</code>. A default-constructed <code>Config</code> is the default pipeline (<code>WS&gt;UF&gt;FC</code>, minimum fuel, 60 nodes). <code>Config::withLabel("WS&gt;UF")</code> returns a copy with another seed and stage sequence.</p>
+<p><code>pipeline::Result</code> contains the warm start (<code>warm</code>), the initial points and optima of both stages (<code>ufGuess</code>, <code>ufOpt</code>, <code>fcGuess</code>, <code>fcOpt</code>, each an <code>ocp::Trajectory</code> with <code>tf</code>, <code>X</code> and <code>U</code>), and the stage records (<code>warmStage</code>, <code>uf</code>, <code>fc</code>) with status, iterations, time, objective, seed and verification. <code>pipeline::clearanceAlong</code>, <code>waypointMissAlong</code> and <code>ufSimulationError</code> compute the post-checks of section 6.8.</p>
+<h2 id="114-solving-one-stage-by-hand">11.4 Solving one stage by hand</h2>
+<p>To control each step yourself, build the problem from an initial point and call the solver directly:</p>
+<div class="highlight"><pre><span></span><code><span class="cp">#include</span><span class="w"> </span><span class="cpf">&lt;cstdio&gt;</span>
+
+<span class="cp">#include</span><span class="w"> </span><span class="cpf">"ofc/aircraft.hpp"</span>
+<span class="cp">#include</span><span class="w"> </span><span class="cpf">"ofc/io.hpp"</span>
+<span class="cp">#include</span><span class="w"> </span><span class="cpf">"ofc/mission.hpp"</span>
+<span class="cp">#include</span><span class="w"> </span><span class="cpf">"ofc/ocp_uf.hpp"</span>
+<span class="cp">#include</span><span class="w"> </span><span class="cpf">"ofc/point_mass.hpp"</span>
+<span class="cp">#include</span><span class="w"> </span><span class="cpf">"ofc/solver.hpp"</span>
+<span class="cp">#include</span><span class="w"> </span><span class="cpf">"ofc/warm_start.hpp"</span>
+
+<span class="k">using</span><span class="w"> </span><span class="k">namespace</span><span class="w"> </span><span class="nn">ofc</span><span class="p">;</span>
+
+<span class="kt">int</span><span class="w"> </span><span class="nf">main</span><span class="p">()</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="k">const</span><span class="w"> </span><span class="n">Aircraft</span><span class="w"> </span><span class="n">ac</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">Aircraft</span><span class="o">::</span><span class="n">fromFile</span><span class="p">(</span><span class="s">"data/aircraft/generic_uav.json"</span><span class="p">);</span>
+<span class="w">    </span><span class="k">const</span><span class="w"> </span><span class="n">nlohmann</span><span class="o">::</span><span class="n">json</span><span class="w"> </span><span class="n">c</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">io</span><span class="o">::</span><span class="n">readJson</span><span class="p">(</span><span class="s">"data/cases/tutorial_first_mission.json"</span><span class="p">);</span>
+<span class="w">    </span><span class="k">const</span><span class="w"> </span><span class="n">MissionSpec</span><span class="w"> </span><span class="n">m</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">MissionSpec</span><span class="o">::</span><span class="n">fromJson</span><span class="p">(</span><span class="n">c</span><span class="p">.</span><span class="n">at</span><span class="p">(</span><span class="s">"missions"</span><span class="p">).</span><span class="n">at</span><span class="p">(</span><span class="mi">1</span><span class="p">),</span><span class="w"> </span><span class="n">ac</span><span class="p">);</span><span class="w"> </span><span class="c1">// T-02</span>
+
+<span class="w">    </span><span class="c1">// 1. Initial point: the warm start, resampled on 40 nodes.</span>
+<span class="w">    </span><span class="k">const</span><span class="w"> </span><span class="n">ws</span><span class="o">::</span><span class="n">Result</span><span class="w"> </span><span class="n">warm</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">ws</span><span class="o">::</span><span class="n">build</span><span class="p">(</span><span class="n">ac</span><span class="p">,</span><span class="w"> </span><span class="n">m</span><span class="p">,</span><span class="w"> </span><span class="n">ws</span><span class="o">::</span><span class="n">Config</span><span class="p">{});</span>
+<span class="w">    </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="o">!</span><span class="n">warm</span><span class="p">.</span><span class="n">ok</span><span class="p">)</span><span class="w"> </span><span class="k">return</span><span class="w"> </span><span class="mi">1</span><span class="p">;</span>
+<span class="w">    </span><span class="k">const</span><span class="w"> </span><span class="n">ocp</span><span class="o">::</span><span class="n">Trajectory</span><span class="w"> </span><span class="n">guess</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">ws</span><span class="o">::</span><span class="n">fromRun</span><span class="p">(</span><span class="n">warm</span><span class="p">.</span><span class="n">uf</span><span class="p">,</span><span class="w"> </span><span class="mi">40</span><span class="p">);</span>
+
+<span class="w">    </span><span class="c1">// 2. Problem: minimum fuel, standard smoothing, references from the mission.</span>
+<span class="w">    </span><span class="k">const</span><span class="w"> </span><span class="n">Mission</span><span class="w"> </span><span class="n">ms</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">m</span><span class="p">.</span><span class="n">ufMission</span><span class="p">(</span><span class="cm">/*alpha=*/</span><span class="mf">1.0</span><span class="p">,</span><span class="w"> </span><span class="cm">/*betaControl=*/</span><span class="mf">1.0</span><span class="p">,</span><span class="w"> </span><span class="cm">/*betaState=*/</span><span class="mf">1.0</span><span class="p">);</span>
+<span class="w">    </span><span class="k">const</span><span class="w"> </span><span class="n">ocp</span><span class="o">::</span><span class="n">Reference</span><span class="w"> </span><span class="n">ref</span><span class="p">{</span><span class="n">m</span><span class="p">.</span><span class="n">referenceLength</span><span class="p">(),</span><span class="w"> </span><span class="n">m</span><span class="p">.</span><span class="n">referenceLength</span><span class="p">()</span><span class="w"> </span><span class="o">/</span><span class="w"> </span><span class="n">m</span><span class="p">.</span><span class="n">flight</span><span class="p">.</span><span class="n">V</span><span class="p">};</span>
+<span class="w">    </span><span class="k">const</span><span class="w"> </span><span class="k">auto</span><span class="w"> </span><span class="n">wps</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">ocp</span><span class="o">::</span><span class="n">assignWaypoints</span><span class="p">(</span><span class="n">guess</span><span class="p">,</span><span class="w"> </span><span class="n">m</span><span class="p">.</span><span class="n">waypoints</span><span class="p">,</span><span class="w"> </span><span class="n">uf</span><span class="o">::</span><span class="n">X</span><span class="p">,</span><span class="w"> </span><span class="n">uf</span><span class="o">::</span><span class="n">Y</span><span class="p">);</span>
+<span class="w">    </span><span class="k">const</span><span class="w"> </span><span class="n">ocp</span><span class="o">::</span><span class="n">UfProblem</span><span class="w"> </span><span class="n">problem</span><span class="p">(</span><span class="n">ac</span><span class="p">,</span><span class="w"> </span><span class="n">ms</span><span class="p">,</span><span class="w"> </span><span class="n">guess</span><span class="p">,</span><span class="w"> </span><span class="n">wps</span><span class="p">,</span><span class="w"> </span><span class="n">ref</span><span class="p">);</span>
+
+<span class="w">    </span><span class="c1">// 3. Solve and verify.</span>
+<span class="w">    </span><span class="n">nlp</span><span class="o">::</span><span class="n">Options</span><span class="w"> </span><span class="n">opt</span><span class="p">;</span>
+<span class="w">    </span><span class="n">opt</span><span class="p">.</span><span class="n">printLevel</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">0</span><span class="p">;</span>
+<span class="w">    </span><span class="k">const</span><span class="w"> </span><span class="n">nlp</span><span class="o">::</span><span class="n">Result</span><span class="w"> </span><span class="n">r</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">nlp</span><span class="o">::</span><span class="n">solve</span><span class="p">(</span><span class="n">problem</span><span class="p">,</span><span class="w"> </span><span class="n">opt</span><span class="p">);</span>
+<span class="w">    </span><span class="k">const</span><span class="w"> </span><span class="n">nlp</span><span class="o">::</span><span class="n">Verification</span><span class="w"> </span><span class="n">v</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">nlp</span><span class="o">::</span><span class="n">verify</span><span class="p">(</span><span class="n">problem</span><span class="p">,</span><span class="w"> </span><span class="n">r</span><span class="p">.</span><span class="n">z</span><span class="p">);</span>
+<span class="w">    </span><span class="k">const</span><span class="w"> </span><span class="n">ocp</span><span class="o">::</span><span class="n">Trajectory</span><span class="w"> </span><span class="n">t</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">problem</span><span class="p">.</span><span class="n">trajectory</span><span class="p">(</span><span class="n">r</span><span class="p">.</span><span class="n">z</span><span class="p">);</span>
+<span class="w">    </span><span class="n">std</span><span class="o">::</span><span class="n">printf</span><span class="p">(</span><span class="s">"%s (%s), %d iterations, t_f = %.1f s, fuel = %.2f g</span><span class="se">\n</span><span class="s">"</span><span class="p">,</span><span class="w"> </span><span class="n">nlp</span><span class="o">::</span><span class="n">toString</span><span class="p">(</span><span class="n">r</span><span class="p">.</span><span class="n">status</span><span class="p">),</span><span class="w"> </span><span class="n">r</span><span class="p">.</span><span class="n">message</span><span class="p">.</span><span class="n">c_str</span><span class="p">(),</span>
+<span class="w">                </span><span class="n">r</span><span class="p">.</span><span class="n">iterations</span><span class="p">,</span><span class="w"> </span><span class="n">t</span><span class="p">.</span><span class="n">tf</span><span class="p">,</span><span class="w"> </span><span class="mf">1e3</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="p">(</span><span class="n">t</span><span class="p">.</span><span class="n">X</span><span class="p">.</span><span class="n">front</span><span class="p">()[</span><span class="n">uf</span><span class="o">::</span><span class="n">MASS</span><span class="p">]</span><span class="w"> </span><span class="o">-</span><span class="w"> </span><span class="n">t</span><span class="p">.</span><span class="n">X</span><span class="p">.</span><span class="n">back</span><span class="p">()[</span><span class="n">uf</span><span class="o">::</span><span class="n">MASS</span><span class="p">]));</span>
+<span class="w">    </span><span class="n">std</span><span class="o">::</span><span class="n">printf</span><span class="p">(</span><span class="s">"%s</span><span class="se">\n</span><span class="s">"</span><span class="p">,</span><span class="w"> </span><span class="n">v</span><span class="p">.</span><span class="n">summary</span><span class="p">().</span><span class="n">c_str</span><span class="p">());</span>
+<span class="w">    </span><span class="k">return</span><span class="w"> </span><span class="n">r</span><span class="p">.</span><span class="n">ok</span><span class="p">()</span><span class="w"> </span><span class="o">&amp;&amp;</span><span class="w"> </span><span class="n">v</span><span class="p">.</span><span class="n">ok</span><span class="p">()</span><span class="w"> </span><span class="o">?</span><span class="w"> </span><span class="mi">0</span><span class="w"> </span><span class="o">:</span><span class="w"> </span><span class="mi">1</span><span class="p">;</span>
+<span class="p">}</span>
+</code></pre></div>
+<div class="highlight"><pre><span></span><code>solved (Solve_Succeeded), 63 iterations, t_f = 157.3 s, fuel = 6.44 g
+dynamics ok | boundary ok | envelope ok | environment ok | bounds ok
+</code></pre></div>
+<p>Two differences from <code>pipeline::run</code> are worth knowing:</p>
+<ul>
+<li>The zone margins are used as given. The pipeline inflates them so that the segments between nodes keep the margin (section 7.5); without it, only the nodes are guaranteed to. Inflate <code>ms.nfz[j].margin</code> yourself if you need the same guarantee.</li>
+<li>Any <code>ocp::Trajectory</code> with the right number of states and controls can be the initial point: <code>ws::coldUf</code> for a straight line, a trajectory from a previous solve (resampled with <code>ocp::resample</code>), or your own.</li>
+</ul>
+<p><code>ocp::FcProblem</code> is used in the same way, with an <code>ocp::FcMission</code> (start state from <code>ws::fcStartState</code>, goal, heading, weights, sideslip limit, zones and altitude band) and a 6-DoF initial point, for example <code>ws::ufToFc(ac, ocp::resample(ufOptimum, N))</code>.</p>
+<h2 id="115-your-own-problem-with-ipopt">11.5 Your own problem with IPOPT</h2>
+<p><code>nlp::solve</code> accepts any class derived from <code>nlp::Problem</code> (<a href="https://github.com/pablourioste/uavtraj-opt/blob/main/code/include/ofc/nlp.hpp"><code>nlp.hpp</code></a>):</p>
+<table>
+<thead>
+<tr>
+<th>Method</th>
+<th>Must return</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>numVariables()</code>, <code>numConstraints()</code></td>
+<td>Problem size</td>
+</tr>
+<tr>
+<td><code>variableBounds(zl, zu)</code>, <code>constraintBounds(gl, gu)</code></td>
+<td>Bounds; use <code>±nlp::kInf</code> for "no bound"</td>
+</tr>
+<tr>
+<td><code>initialPoint()</code></td>
+<td>The starting point</td>
+</tr>
+<tr>
+<td><code>variableScale()</code> (optional)</td>
+<td>Typical magnitude of each variable; default 1</td>
+</tr>
+<tr>
+<td><code>cost(z)</code>, <code>costGradient(z)</code></td>
+<td>Objective and its exact gradient</td>
+</tr>
+<tr>
+<td><code>constraints(z)</code></td>
+<td>Constraint values</td>
+</tr>
+<tr>
+<td><code>constraintJacobian(z)</code></td>
+<td>Nonzero entries as <code>{row, col, value}</code> triplets, <strong>with the same rows and columns in the same order at every call</strong></td>
+</tr>
+<tr>
+<td><code>constraintLabel(i)</code>, <code>constraintKind(i)</code>, <code>variableLabel(j)</code> (optional)</td>
+<td>Names and groups used by <code>nlp::verify</code></td>
+</tr>
+</tbody>
+</table>
+<p>A minimal example, the Rosenbrock function constrained to a disc:</p>
+<div class="highlight"><pre><span></span><code><span class="cp">#include</span><span class="w"> </span><span class="cpf">&lt;cstdio&gt;</span>
+
+<span class="cp">#include</span><span class="w"> </span><span class="cpf">"ofc/nlp.hpp"</span>
+<span class="cp">#include</span><span class="w"> </span><span class="cpf">"ofc/solver.hpp"</span>
+
+<span class="k">using</span><span class="w"> </span><span class="k">namespace</span><span class="w"> </span><span class="nn">ofc</span><span class="p">;</span>
+
+<span class="c1">// min (1 - x)^2 + 100 (y - x^2)^2   subject to   x^2 + y^2 &lt;= 1.5</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">Rosenbrock</span><span class="w"> </span><span class="o">:</span><span class="w"> </span><span class="k">public</span><span class="w"> </span><span class="n">nlp</span><span class="o">::</span><span class="n">Problem</span><span class="w"> </span><span class="p">{</span>
+<span class="k">public</span><span class="o">:</span>
+<span class="w">    </span><span class="kt">int</span><span class="w"> </span><span class="n">numVariables</span><span class="p">()</span><span class="w"> </span><span class="k">const</span><span class="w"> </span><span class="k">override</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="k">return</span><span class="w"> </span><span class="mi">2</span><span class="p">;</span><span class="w"> </span><span class="p">}</span>
+<span class="w">    </span><span class="kt">int</span><span class="w"> </span><span class="n">numConstraints</span><span class="p">()</span><span class="w"> </span><span class="k">const</span><span class="w"> </span><span class="k">override</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="k">return</span><span class="w"> </span><span class="mi">1</span><span class="p">;</span><span class="w"> </span><span class="p">}</span>
+<span class="w">    </span><span class="kt">void</span><span class="w"> </span><span class="n">variableBounds</span><span class="p">(</span><span class="n">Vec</span><span class="o">&amp;</span><span class="w"> </span><span class="n">zl</span><span class="p">,</span><span class="w"> </span><span class="n">Vec</span><span class="o">&amp;</span><span class="w"> </span><span class="n">zu</span><span class="p">)</span><span class="w"> </span><span class="k">const</span><span class="w"> </span><span class="k">override</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="n">zl</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">{</span><span class="o">-</span><span class="n">nlp</span><span class="o">::</span><span class="n">kInf</span><span class="p">,</span><span class="w"> </span><span class="o">-</span><span class="n">nlp</span><span class="o">::</span><span class="n">kInf</span><span class="p">},</span><span class="w"> </span><span class="n">zu</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">{</span><span class="n">nlp</span><span class="o">::</span><span class="n">kInf</span><span class="p">,</span><span class="w"> </span><span class="n">nlp</span><span class="o">::</span><span class="n">kInf</span><span class="p">};</span><span class="w"> </span><span class="p">}</span>
+<span class="w">    </span><span class="kt">void</span><span class="w"> </span><span class="n">constraintBounds</span><span class="p">(</span><span class="n">Vec</span><span class="o">&amp;</span><span class="w"> </span><span class="n">gl</span><span class="p">,</span><span class="w"> </span><span class="n">Vec</span><span class="o">&amp;</span><span class="w"> </span><span class="n">gu</span><span class="p">)</span><span class="w"> </span><span class="k">const</span><span class="w"> </span><span class="k">override</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="n">gl</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">{</span><span class="o">-</span><span class="n">nlp</span><span class="o">::</span><span class="n">kInf</span><span class="p">},</span><span class="w"> </span><span class="n">gu</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">{</span><span class="mf">1.5</span><span class="p">};</span><span class="w"> </span><span class="p">}</span>
+<span class="w">    </span><span class="n">Vec</span><span class="w"> </span><span class="n">initialPoint</span><span class="p">()</span><span class="w"> </span><span class="k">const</span><span class="w"> </span><span class="k">override</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="k">return</span><span class="w"> </span><span class="p">{</span><span class="mf">-1.0</span><span class="p">,</span><span class="w"> </span><span class="mf">1.0</span><span class="p">};</span><span class="w"> </span><span class="p">}</span>
+<span class="w">    </span><span class="kt">double</span><span class="w"> </span><span class="n">cost</span><span class="p">(</span><span class="k">const</span><span class="w"> </span><span class="n">Vec</span><span class="o">&amp;</span><span class="w"> </span><span class="n">z</span><span class="p">)</span><span class="w"> </span><span class="k">const</span><span class="w"> </span><span class="k">override</span><span class="w"> </span><span class="p">{</span>
+<span class="w">        </span><span class="k">return</span><span class="w"> </span><span class="p">(</span><span class="mi">1</span><span class="w"> </span><span class="o">-</span><span class="w"> </span><span class="n">z</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="p">(</span><span class="mi">1</span><span class="w"> </span><span class="o">-</span><span class="w"> </span><span class="n">z</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="mi">100</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="p">(</span><span class="n">z</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="w"> </span><span class="o">-</span><span class="w"> </span><span class="n">z</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="n">z</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="p">(</span><span class="n">z</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="w"> </span><span class="o">-</span><span class="w"> </span><span class="n">z</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="n">z</span><span class="p">[</span><span class="mi">0</span><span class="p">]);</span>
+<span class="w">    </span><span class="p">}</span>
+<span class="w">    </span><span class="n">Vec</span><span class="w"> </span><span class="n">costGradient</span><span class="p">(</span><span class="k">const</span><span class="w"> </span><span class="n">Vec</span><span class="o">&amp;</span><span class="w"> </span><span class="n">z</span><span class="p">)</span><span class="w"> </span><span class="k">const</span><span class="w"> </span><span class="k">override</span><span class="w"> </span><span class="p">{</span>
+<span class="w">        </span><span class="k">const</span><span class="w"> </span><span class="kt">double</span><span class="w"> </span><span class="n">r</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">z</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="w"> </span><span class="o">-</span><span class="w"> </span><span class="n">z</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="n">z</span><span class="p">[</span><span class="mi">0</span><span class="p">];</span>
+<span class="w">        </span><span class="k">return</span><span class="w"> </span><span class="p">{</span><span class="mi">-2</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="p">(</span><span class="mi">1</span><span class="w"> </span><span class="o">-</span><span class="w"> </span><span class="n">z</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span><span class="w"> </span><span class="o">-</span><span class="w"> </span><span class="mi">400</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="n">z</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="n">r</span><span class="p">,</span><span class="w"> </span><span class="mi">200</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="n">r</span><span class="p">};</span>
+<span class="w">    </span><span class="p">}</span>
+<span class="w">    </span><span class="n">Vec</span><span class="w"> </span><span class="n">constraints</span><span class="p">(</span><span class="k">const</span><span class="w"> </span><span class="n">Vec</span><span class="o">&amp;</span><span class="w"> </span><span class="n">z</span><span class="p">)</span><span class="w"> </span><span class="k">const</span><span class="w"> </span><span class="k">override</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="k">return</span><span class="w"> </span><span class="p">{</span><span class="n">z</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="n">z</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="n">z</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="n">z</span><span class="p">[</span><span class="mi">1</span><span class="p">]};</span><span class="w"> </span><span class="p">}</span>
+<span class="w">    </span><span class="n">std</span><span class="o">::</span><span class="n">vector</span><span class="o">&lt;</span><span class="n">Triplet</span><span class="o">&gt;</span><span class="w"> </span><span class="n">constraintJacobian</span><span class="p">(</span><span class="k">const</span><span class="w"> </span><span class="n">Vec</span><span class="o">&amp;</span><span class="w"> </span><span class="n">z</span><span class="p">)</span><span class="w"> </span><span class="k">const</span><span class="w"> </span><span class="k">override</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="k">return</span><span class="w"> </span><span class="p">{{</span><span class="mi">0</span><span class="p">,</span><span class="w"> </span><span class="mi">0</span><span class="p">,</span><span class="w"> </span><span class="mi">2</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="n">z</span><span class="p">[</span><span class="mi">0</span><span class="p">]},</span><span class="w"> </span><span class="p">{</span><span class="mi">0</span><span class="p">,</span><span class="w"> </span><span class="mi">1</span><span class="p">,</span><span class="w"> </span><span class="mi">2</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="n">z</span><span class="p">[</span><span class="mi">1</span><span class="p">]}};</span><span class="w"> </span><span class="p">}</span>
+<span class="p">};</span>
+
+<span class="kt">int</span><span class="w"> </span><span class="nf">main</span><span class="p">()</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="k">const</span><span class="w"> </span><span class="n">Rosenbrock</span><span class="w"> </span><span class="n">p</span><span class="p">;</span>
+<span class="w">    </span><span class="k">const</span><span class="w"> </span><span class="n">nlp</span><span class="o">::</span><span class="n">Result</span><span class="w"> </span><span class="n">r</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">nlp</span><span class="o">::</span><span class="n">solve</span><span class="p">(</span><span class="n">p</span><span class="p">);</span>
+<span class="w">    </span><span class="n">std</span><span class="o">::</span><span class="n">printf</span><span class="p">(</span><span class="s">"%s: x = %.4f, y = %.4f</span><span class="se">\n</span><span class="s">"</span><span class="p">,</span><span class="w"> </span><span class="n">nlp</span><span class="o">::</span><span class="n">toString</span><span class="p">(</span><span class="n">r</span><span class="p">.</span><span class="n">status</span><span class="p">),</span><span class="w"> </span><span class="n">r</span><span class="p">.</span><span class="n">z</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span><span class="w"> </span><span class="n">r</span><span class="p">.</span><span class="n">z</span><span class="p">[</span><span class="mi">1</span><span class="p">]);</span>
+<span class="w">    </span><span class="k">return</span><span class="w"> </span><span class="n">r</span><span class="p">.</span><span class="n">ok</span><span class="p">()</span><span class="w"> </span><span class="o">?</span><span class="w"> </span><span class="mi">0</span><span class="w"> </span><span class="o">:</span><span class="w"> </span><span class="mi">1</span><span class="p">;</span>
+<span class="p">}</span>
+</code></pre></div>
+<div class="highlight"><pre><span></span><code>solved: x = 0.9072, y = 0.8228
+</code></pre></div>
+<p>The adapter of section 8.3 then applies the scaling, the limited-memory Hessian and the status mapping to your problem as it does to the trajectory problems.</p>
+<h2 id="116-adding-constraints">11.6 Adding constraints</h2>
+<h3 id="a-new-kind-of-environment-constraint">A new kind of environment constraint</h3>
+<p>Zones and waypoints of the existing kinds need no code: list them in the case file. A new kind (a circular zone, a ceiling, terrain clearance, a speed limit inside an area) touches six places:</p>
+<ol>
+<li><strong>Model.</strong> Add a struct, a <code>...FromJson</code> parser and a smooth, distance-like function to <a href="https://github.com/pablourioste/uavtraj-opt/blob/main/code/include/ofc/environment.hpp"><code>environment.hpp</code></a> and <code>environment.cpp</code>.</li>
+<li><strong>Mission data.</strong> Add a vector of it to <code>MissionSpec</code> (<a href="https://github.com/pablourioste/uavtraj-opt/blob/main/code/include/ofc/mission.hpp"><code>mission.hpp</code></a>) and parse it in <code>MissionSpec::fromJson</code>.</li>
+<li><strong>NLP rows.</strong> Add a member to <code>Mission</code> (<a href="https://github.com/pablourioste/uavtraj-opt/blob/main/code/include/ofc/transcription.hpp"><code>transcription.hpp</code></a>) and <code>FcMission</code> (<a href="https://github.com/pablourioste/uavtraj-opt/blob/main/code/include/ofc/ocp_fc.hpp"><code>ocp_fc.hpp</code></a>). In <strong>both</strong> models, append one name to the path-row names and one value to <code>pathAt</code>, in the same order (<code>TrapezoidalUF::pathConstraintNames</code> and <code>TrapezoidalUF::pathAt</code>; the <code>FcProblem</code> constructor and <code>FcProblem::pathAt</code>). Write the row as <span class="arithmatex">\(h\le0\)</span> and normalise it by a characteristic size. The Jacobian picks the new row up automatically (central differences per node). <code>nlp::verify</code> reports it in the <code>environment</code> group if its name starts with <code>nfz:</code>; extend <code>CollocationProblem::constraintKind</code> for other prefixes.</li>
+<li><strong>Planner.</strong> If the constraint restricts the horizontal path, extend the free-space test in <code>plan::planMission</code> (<a href="https://github.com/pablourioste/uavtraj-opt/blob/main/code/src/planning/planner.cpp"><code>planner.cpp</code></a>), or the warm start will cross it.</li>
+<li><strong>Pipeline.</strong> Pass the new data from <code>MissionSpec</code> to both problems in <code>pipeline::run</code>.</li>
+<li><strong>Tests.</strong> Check the sign convention, a point inside and one outside, and a complete pipeline run that respects the constraint (<a href="https://github.com/pablourioste/uavtraj-opt/blob/main/code/tests/test_optimization.cpp"><code>tests/test_optimization.cpp</code></a>).</li>
+</ol>
+<p>The row must be smooth in the state: avoid switching it on and off with altitude or time inside <code>pathAt</code> (section 7.5 explains why zones are activated once per mission).</p>
+<h3 id="a-new-boundary-condition">A new boundary condition</h3>
+<p>Equality conditions at the start or the end (a final airspeed, a final flight-path angle) are boundary rows, added in the constructors of <code>UfProblem</code> (<a href="https://github.com/pablourioste/uavtraj-opt/blob/main/code/src/formulation/ocp_uf.cpp"><code>ocp_uf.cpp</code></a>) and <code>FcProblem</code>. Each row is a label, a column of the decision vector, a target and a scale. For example, to impose a final airspeed in the UF problem, after the existing final-heading row:</p>
+<div class="highlight"><pre><span></span><code><span class="c1">// Final airspeed (m.speedEnd: a new member of Mission, filled from the case file).</span>
+<span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">m</span><span class="p">.</span><span class="n">speedEnd</span><span class="w"> </span><span class="o">&gt;</span><span class="w"> </span><span class="mf">0.0</span><span class="p">)</span><span class="w"> </span><span class="n">boundary</span><span class="p">.</span><span class="n">push_back</span><span class="p">({</span><span class="s">"xf.V"</span><span class="p">,</span><span class="w"> </span><span class="n">L</span><span class="p">.</span><span class="n">idxState</span><span class="p">(</span><span class="n">K</span><span class="p">,</span><span class="w"> </span><span class="n">V</span><span class="p">),</span><span class="w"> </span><span class="n">m</span><span class="p">.</span><span class="n">speedEnd</span><span class="p">,</span><span class="w"> </span><span class="n">s</span><span class="p">.</span><span class="n">x</span><span class="p">[</span><span class="n">V</span><span class="p">]});</span>
+</code></pre></div>
+<p><code>CollocationProblem</code> adapts the constraint count, the Jacobian (one constant entry per boundary row) and the labels by itself. Add the corresponding row to <code>FcProblem</code> with the forward body velocity <code>u</code> if the FC stage must respect it too.</p>
+<h2 id="117-tests-and-formatting">11.7 Tests and formatting</h2>
+<p>The unit tests in <code>code/tests/</code> use no external framework: each file registers checks that <code>tests/main.cpp</code> runs. Add a test for every new model term, constraint or derivative, and compare any analytic derivative with <code>nlp::jacobianError</code> or a central difference. Run them with <code>ctest --test-dir build --output-on-failure -C Release</code>, and format the sources with clang-format 18 before committing (section 1.7).</p>
+<p><a href="../10-troubleshooting/">← 10. Troubleshooting</a> · <a href="../">Back to the user guide</a></p>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+    
+      
+      <nav class="md-footer__inner md-grid" aria-label="Footer" >
+        
+          
+          <a href="../10-troubleshooting/" class="md-footer__link md-footer__link--prev" aria-label="Previous: 10. Troubleshooting">
+            <div class="md-footer__button md-icon">
+              
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+            </div>
+            <div class="md-footer__title">
+              <span class="md-footer__direction">
+                Previous
+              </span>
+              <div class="md-ellipsis">
+                10. Troubleshooting
+              </div>
+            </div>
+          </a>
+        
+        
+          
+          <a href="../../01-problem/" class="md-footer__link md-footer__link--next" aria-label="Next: 1. Problem and requirements">
+            <div class="md-footer__title">
+              <span class="md-footer__direction">
+                Next
+              </span>
+              <div class="md-ellipsis">
+                1. Problem and requirements
+              </div>
+            </div>
+            <div class="md-footer__button md-icon">
+              
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M4 11v2h12l-5.5 5.5 1.42 1.42L19.84 12l-7.92-7.92L10.5 5.5 16 11z"/></svg>
+            </div>
+          </a>
+        
+      </nav>
+    
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      
+      <script id="__config" type="application/json">{"annotate": null, "base": "../..", "features": ["navigation.sections", "navigation.footer", "content.code.copy"], "search": "../../assets/javascripts/workers/search.a7633da7.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+    
+    
+      <script src="../../assets/javascripts/bundle.c21346df.min.js"></script>
+      
+        <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+      
+    
+  </body>
+</html>
