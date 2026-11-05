@@ -1,7 +1,7 @@
 # Worked examples and design scenarios
 
-!!! abstract "TL;DR"
-    All nine use cases run on the generic UAV. Headline result first, then the deeper ones:
+!!! abstract "Summary"
+    All nine use cases run on the generic UAV. The main results, from the optimiser down to the aircraft:
 
     - **Optimal missions (UC-08).** Warm start → point-mass optimum → 6-DoF optimum converges with IPOPT in all four missions, in 0.5–1.5 s per stage (machine-dependent). The two optima agree to 0.2 % in fuel, every one passes an independent check of all its constraints, and the whole optimal path stays 9–12 m beyond every zone margin.
     - **Warm-start benchmark (UC-09).** On identical problems, a straight-line cold start still converges for this small aircraft. It needs up to 2× the iterations, though, and in one mission it ends in a worse local optimum (+3.9 % cost).
@@ -20,10 +20,10 @@ All numbers on this page come from `bash run.sh` in `code/`, using the case file
 
 An 11 kg, 2.9 m-span UAV. Its mass, geometry, inertia, lift, side-force and moment derivatives follow the Aerosonde-class model of Beard & McLain (2012). Its drag polar ($C_{D0}=0.030$, $k=0.055$), propulsion (800 W, $\eta_p=0.7$, SFC 0.6 kg/kWh) and envelope limits are illustrative values chosen for this example. Data file: `code/data/aircraft/generic_uav.json` ([format](aircraft-format.md)).
 
-## UC-08 — Optimal missions
+## UC-08: Optimal missions
 
-!!! tip "The headline result"
-    These optimised missions are the cover of the repository. The rest of this page goes deeper: the pipeline benchmark (UC-09), the warm starts themselves (UC-07), and from the aircraft report (UC-01) to the typical design scenarios (UC-06).
+!!! tip "Where this page goes next"
+    These optimised missions are the cover of the repository. The rest of the page covers the pipeline benchmark (UC-09), the warm starts themselves (UC-07), and the aircraft and model checks, from the aircraft report (UC-01) to the typical design scenarios (UC-06). How to run each example and adapt it to your own case: [User guide, example catalogue](../guide/09-examples.md).
 
 The four missions of UC-07, solved for **minimum fuel** (α = 1) with the full pipeline:
 
@@ -66,7 +66,7 @@ How to read the results:
 - **Clearance along the whole path.** The zone rows hold at the nodes, but with an inflated margin $\sqrt{m^2+(\ell/2)^2}$ the straight segments between nodes also stay 9–12 m beyond the real margin. With the plain margin, the segments cut 8–18 m into it at the zone corners.
 - **Discretisation error.** An RK4 simulation of each interval, driven by the optimal controls, lands within 0.3–0.9 m of the next node. One open-loop simulation over the whole flight drifts by 10–70 m (`sim_drift_uf_m` in `summary.csv`), because heading and speed errors integrate. A tracking loop removes that drift in practice.
 
-## UC-09 — Warm-start benchmark
+## UC-09: Warm-start benchmark
 
 The same four missions solved by four pipelines. Every pipeline solves exactly the same problems: scales, cost references and t_f bounds come from the mission, not from the seed.
 
@@ -99,7 +99,7 @@ How to read the results, against the thesis's claims ([14. Warm-start benchmark]
 - **The UF stage does not make the FC stage faster here.** Seeded by the projected UF optimum or directly by the autopilot run, FC reaches the same optimum, and the solve-time difference is within ±20 % except in M-03. Unlike the thesis's direct seed, built by inverse dynamics, the autopilot run is a genuinely flown 6-DoF trajectory, already a good seed. The thesis's 1.2–4.4× FC speed-up is therefore **not reproduced** with this aircraft and this seed. What the UF stage does buy is a much cheaper exploration (0.5 s instead of 0.8–1.5 s) and a 6-DoF seed with 4–10× smaller defects.
 - **Timings depend on the machine; iteration counts on the IPOPT version and linear solver.** The tables come from IPOPT 3.11.9 (Linux). IPOPT 3.14.20 on Windows reaches the same optima to the printed digits, but its counts differ, by up to a factor of two (for example 193 against 99 iterations for the FC stage of M-03).
 
-## UC-07 — Missions with no-fly zones and waypoints
+## UC-07: Missions with no-fly zones and waypoints
 
 These planned and flown trajectories are the warm starts of UC-08.
 
@@ -148,7 +148,7 @@ How to read the results:
 - **Mesh resolution.** The flown trajectories satisfy the collocation equations to 0.14–0.55 on 80 nodes, and to 0.004–0.014 on 320 nodes. As in UC-06, the mesh must resolve the turns.
 - **From flyable to optimal.** A trajectory like this is the warm start that UC-08 hands to the UF and FC optimisation stages.
 
-## UC-01 — Aircraft report
+## UC-01: Aircraft report
 
 ```text
 aero     : CL_max 1.405, k 0.0550, (L/D)max 12.31 at CL 0.739
@@ -162,7 +162,7 @@ aero     : CL_max 1.405, k 0.0550, (L/D)max 12.31 at CL 0.739
 min turn radius at V_cruise, phi_max: 76.0 m
 ```
 
-## UC-02 — Trim
+## UC-02: Trim
 
 ```text
 condition: V 25.00 m/s, h 300 m, gamma 0.00 deg, mu 0.00 deg
@@ -173,7 +173,7 @@ condition: V 25.00 m/s, h 300 m, gamma 0.00 deg, mu 0.00 deg
 
 The two models need the same thrust (9.27 N against 9.25 N), because they share the lift and drag description. The small difference is the thrust component along the flight path, $T\cos\alpha$, in the 6-DoF trim.
 
-## UC-03 — Open-loop simulation
+## UC-03: Open-loop simulation
 
 ```text
 [UF] bank 30.0 deg after 60 s, heading change 764.6 deg, altitude change 0.01 m
@@ -191,7 +191,7 @@ The two models need the same thrust (9.27 N against 9.25 N), because they share 
   <figcaption>FC after an elevator doublet. The short-period mode is the fast α oscillation that dies out in about 1 s. The phugoid is the slow exchange between speed and altitude, with a period of about 12 s (theory: 2πV/(g√2) ≈ 11 s).</figcaption>
 </figure>
 
-## UC-04 — The NLP an optimiser sees
+## UC-04: The NLP an optimiser sees
 
 Straight 3.1 km leg with a 100 m climb, point-mass model, trapezoidal collocation:
 
@@ -210,9 +210,9 @@ Straight 3.1 km leg with a 100 m climb, point-mass model, trapezoidal collocatio
 
 - **Derivatives.** Forward differences need one full evaluation of the defects per decision variable, so their cost grows as O(N²). The sparse analytic Jacobian grows as O(N). Both agree to about 1e-10. This is the mechanism behind the speed-up between the two versions of the thesis solver: the published results were computed with finite differences, and a later version uses exact derivatives.
 - **Seed quality.** A cold start (straight line, zero controls) violates the dynamics by O(1). A trimmed line satisfies them to machine precision. That gap is why an interior-point solver started cold spends so many iterations in restoration (see [11. Warm start](../11-warm-start.md)).
-- **Sparsity.** At N = 200 only 0.44 % of the Jacobian entries are nonzero ([spy plot](architecture.md#decision-vector-layout-trapezoidaluf)).
+- **Sparsity.** At N = 200 only 0.44 % of the Jacobian entries are nonzero ([spy plot](architecture.md#decision-vector-layout)).
 
-## UC-05 — Design charts
+## UC-05: Design charts
 
 ```text
 mass 11.00 kg, service ceiling (0.5 m/s) 5907 m, absolute ceiling 7005 m
@@ -236,7 +236,7 @@ How to read the four panels:
 3. **6-DoF trim curves.** The elevator needed to trim reaches the ±25° limit below about 17 m/s. **Elevator authority, not stall, sets the minimum trimmed speed** (V_stall = 15.3 m/s at 300 m). A slope of δ_e against V that is negative at low speed and flattens out is the signature of a statically stable aircraft. The 6-DoF and point-mass trim thrusts coincide (black and white dashed lines).
 4. **Level turns.** Turn radius against bank. Dotted segments break a limit: C_L,max at 18 m/s beyond about 43° of bank, and power at 32 m/s beyond about 58°.
 
-## UC-06 — Typical design scenarios
+## UC-06: Typical design scenarios
 
 The same 2 × 2 design as the thesis's [validation scenarios](../12-results-validation.md): straight or 180° turn, level or +200 m climb. Each is flown at 25 m/s, with 30° of bank in turns and a 7.5° climb angle, by the point-mass model (UF, dynamic inversion) and the 6-DoF model (FC, autopilot).
 

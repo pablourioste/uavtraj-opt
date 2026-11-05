@@ -1,6 +1,6 @@
 # 12. Validation results
 
-!!! abstract "TL;DR"
+!!! abstract "Summary"
     Four reference scenarios in empty airspace isolate longitudinal and lateral behaviour. Every converged solution is checked *a posteriori* for dynamic consistency, constraint margins, UF–FC agreement and time–fuel behaviour.
 
 ## Scenarios

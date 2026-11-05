@@ -1,6 +1,6 @@
 # Code: public implementation
 
-!!! abstract "TL;DR"
+!!! abstract "Summary"
     `code/` is a self-contained C++17 implementation of the thesis method, end to end. It covers a generic aircraft described in JSON, the point-mass (UF) and 6-DoF (FC) models, the trapezoidal collocation of both optimal-control problems with their constraints and cost, and the warm-start chain (Hybrid A\* path → guidance laws → UF → FC projection). It solves both problems with **IPOPT** and verifies every optimum independently. Nine runnable use cases cover the aircraft's design charts, four typical design scenarios, four constrained missions planned and flown, the same missions optimised, and a warm-start benchmark. IPOPT is optional at build time; without it, everything except the two optimisation use cases still runs.
 
 !!! warning "A clean-room implementation"
@@ -8,14 +8,18 @@
 
 ## Quick start
 
-Requirements: CMake ≥ 3.14 and a C++17 compiler (GCC, Clang or MSVC). For the optimiser, IPOPT and `pkg-config` (`sudo apt install coinor-libipopt-dev pkg-config` on Linux / WSL, `brew install ipopt pkg-config` on macOS). Python with `numpy` and `matplotlib` is only needed for the figures.
+Requirements: CMake ≥ 3.14 and a C++17 compiler (GCC, Clang or MSVC). For the optimiser, IPOPT and `pkg-config` (`sudo apt install coinor-libipopt-dev pkg-config` on Linux / WSL, `brew install ipopt pkg-config` on macOS). Python with `numpy` and `matplotlib` is only needed for the figures. The [User guide](../guide/index.md) explains every step in detail, from installation to the mathematical formulation and the IPOPT options.
 
 ```bash
 cd code
 bash run.sh          # Linux / macOS / Git Bash: build, tests, 9 use cases, figures
-.\utils\install_ipopt.ps1   # Windows PowerShell, once: official IPOPT binaries (needs Visual Studio 2022+)
-.\run.ps1                   # Windows PowerShell (without IPOPT: UC-08/09 are skipped)
 ./build/ofc --info   # is the optimiser in this build?
+```
+
+```powershell
+cd code
+.\utils\install_ipopt.ps1   # once: official IPOPT binaries (needs Visual Studio 2022 or newer)
+.\run.ps1                   # build, tests, 9 use cases, figures (without IPOPT, UC-08/09 are skipped)
 ```
 
 Run a single case by hand, from `code/`:

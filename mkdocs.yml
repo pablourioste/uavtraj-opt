@@ -29,6 +29,19 @@ extra_javascript:
 
 nav:
   - Home: index.md
+  - User guide:
+      - Contents: guide/index.md
+      - 1. Installation: guide/01-installation.md
+      - 2. First run: guide/02-first-run.md
+      - 3. Input files: guide/03-inputs.md
+      - 4. Reading the results: guide/04-results.md
+      - 5. Tutorial, first mission: guide/05-tutorial.md
+      - 6. The optimisation process: guide/06-optimisation-process.md
+      - 7. Mathematical formulation: guide/07-formulation.md
+      - 8. Using IPOPT: guide/08-ipopt.md
+      - 9. Example catalogue: guide/09-examples.md
+      - 10. Troubleshooting: guide/10-troubleshooting.md
+      - 11. Using and extending the library: guide/11-extending.md
   - Project:
       - 1. Problem and requirements: 01-problem.md
       - 2. State of the art: 02-state-of-the-art.md

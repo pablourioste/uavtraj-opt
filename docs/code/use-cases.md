@@ -6,9 +6,9 @@ Every use case is a JSON file in `code/data/cases/` with a `use_case` field and 
 ./build/ofc data/cases/uc01_aircraft_report.json [more cases ...]
 ```
 
-Paths are relative to the working directory. The program exits with a non-zero code if a case fails (for example, a trim that does not converge). Results and their interpretation are on the [Worked examples](examples.md) page.
+Paths are relative to the working directory. The program exits with a non-zero code if a case fails (for example, a trim that does not converge). Results and their interpretation are on the [Worked examples](examples.md) page. For a step-by-step introduction to the input files, with every key of the optimisation cases explained, see the [User guide, chapter 3](../guide/03-inputs.md).
 
-## UC-01 — Aircraft report
+## UC-01: Aircraft report
 
 ```json
 { "use_case": "UC-01", "aircraft": "data/aircraft/generic_uav.json", "altitudes_m": [0, 1000, 2000] }
@@ -16,7 +16,7 @@ Paths are relative to the working directory. The program exits with a non-zero c
 
 The report prints the input data and the **derived** performance: CL_max, k, (L/D)max, and a table over altitude with ρ, V_stall, the speed for best L/D, available power, and the thrust available at V_cruise. Use it to sanity-check a new aircraft file before anything else.
 
-## UC-02 — Trim
+## UC-02: Trim
 
 ```json
 { "use_case": "UC-02", "aircraft": "...", "flight": { "V_mps": 25, "h_m": 300, "gamma_deg": 0, "mu_deg": 0 } }
@@ -25,7 +25,7 @@ The report prints the input data and the **derived** performance: CL_max, k, (L/
 - **UF.** Closed form: $L\cos\mu=mg\cos\gamma$ and $T=D+mg\sin\gamma$. The report also checks the trim against C_L,max, available thrust, n_max and the bank limit.
 - **FC.** Newton iterations on (α, δ_e, T) that zero u̇, ẇ and q̇ in straight, wings-level flight. The starting point comes from the UF trim and the linear lift and moment model.
 
-## UC-03 — Open-loop simulation
+## UC-03: Open-loop simulation
 
 ```json
 { "use_case": "UC-03", "aircraft": "...", "flight": { "V_mps": 25, "h_m": 300 },
@@ -40,7 +40,7 @@ The report prints the input data and the **derived** performance: CL_max, k, (L/
 
 Outputs: `uf.csv` and `fc.csv`.
 
-## UC-04 — Transcription check
+## UC-04: Transcription check
 
 ```json
 { "use_case": "UC-04", "aircraft": "...",
@@ -58,7 +58,7 @@ Outputs: `uf.csv` and `fc.csv`.
 
 After the table it gives the cost, the boundary residual, a check of the cost gradient, and the worst value of every path constraint. Outputs: `transcription_check.csv` and `sparsity_N<smallest>.csv`.
 
-## UC-05 — Design charts
+## UC-05: Design charts
 
 ```json
 { "use_case": "UC-05", "aircraft": "...", "altitudes_m": [0, 1000, 2000, 4000],
@@ -74,7 +74,7 @@ After the table it gives the cost, the boundary residual, a check of the cost gr
 
 `mass_kg` is optional and defaults to m₀. The report prints the service ceiling (where the climb rate drops to 0.5 m/s), the absolute ceiling, and the envelope table.
 
-## UC-06 — Typical design scenarios
+## UC-06: Typical design scenarios
 
 ```json
 { "use_case": "UC-06", "aircraft": "...", "nodes": 60,
@@ -99,7 +99,7 @@ Each scenario is flown by both models with the same guidance (see [Formulation i
 
 Outputs per scenario: `<id>_uf.csv`, `<id>_fc.csv` and `<id>_speed_trade.csv`, plus a `summary.csv` for all of them.
 
-## UC-07 — Missions with no-fly zones and waypoints
+## UC-07: Missions with no-fly zones and waypoints
 
 ```json
 { "use_case": "UC-07", "aircraft": "...", "nodes": 80,
@@ -130,7 +130,7 @@ For each mission the report gives:
 
 The program exits with code 2 if a path is not found or a check fails. Outputs per mission: `<id>_path.csv`, `<id>_uf.csv`, `<id>_fc.csv`, `<id>_nfz.csv` and `<id>_points.csv`, plus a `summary.csv`.
 
-## UC-08 — Optimal missions (needs IPOPT)
+## UC-08: Optimal missions (needs IPOPT)
 
 ```json
 { "use_case": "UC-08", "aircraft": "...",
@@ -164,9 +164,9 @@ For each mission the report gives:
 - the largest waypoint miss;
 - the local integration error of the UF optimum.
 
-A converged stage whose verification fails is marked with `!` and its worst violated row is printed. Without IPOPT the case prints a notice and exits with code 0. Outputs per mission: `<id>_ws.csv` (warm start on the UF nodes), `<id>_uf.csv`, `<id>_fc.csv`, `<id>_path.csv`, `<id>_nfz.csv` and `<id>_points.csv`, plus `summary.csv` and `report.json` (every stage's status, IPOPT return code, seed, iterations, time, objective, initial defect, penalty share and verification summary).
+A stage that does not succeed (IPOPT did not converge, or it converged but the verification failed) is marked with `!`, and IPOPT's return code and the worst violated row of each group are printed below the row. Without IPOPT the case prints a notice and exits with code 0. Outputs per mission: `<id>_ws.csv` (warm start on the UF nodes), `<id>_uf.csv`, `<id>_fc.csv`, `<id>_path.csv`, `<id>_nfz.csv` and `<id>_points.csv`, plus `summary.csv` and `report.json` (every stage's status, IPOPT return code, seed, iterations, time, objective, initial defect, penalty share and verification summary).
 
-## UC-09 — Warm-start benchmark (needs IPOPT)
+## UC-09: Warm-start benchmark (needs IPOPT)
 
 ```json
 { "use_case": "UC-09", "aircraft": "...",

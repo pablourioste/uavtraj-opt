@@ -17,6 +17,8 @@ file(GLOB_RECURSE OFC_SOURCES CONFIGURE_DEPENDS "src/*.cpp")
 list(REMOVE_ITEM OFC_SOURCES "${PROJECT_SOURCE_DIR}/src/main.cpp")
 
 add_library(ofc_core STATIC ${OFC_SOURCES})
+# Programs that link ofc_core include its headers, which need C++17.
+target_compile_features(ofc_core PUBLIC cxx_std_17)
 target_include_directories(ofc_core PUBLIC ${PROJECT_SOURCE_DIR}/include)
 # Third-party headers as SYSTEM so their warnings do not hide ours.
 target_include_directories(ofc_core SYSTEM PUBLIC ${PROJECT_SOURCE_DIR}/third_party)

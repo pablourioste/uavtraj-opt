@@ -1,6 +1,6 @@
 # 10. Cost function: time, fuel and smoothness
 
-!!! abstract "TL;DR"
+!!! abstract "Summary"
     One Bolza cost with a dial $\alpha\in[0,1]$ from minimum time to minimum fuel, plus a small quadratic penalty on control increments that removes numerical chatter.
 
 ## Time–fuel trade-off

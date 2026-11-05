@@ -32,20 +32,21 @@ Each mission in detail: [Worked examples → UC-08](code/examples.md#uc-08-optim
 !!! note "About the code"
     This work was designed exclusively as a product for [Singular Aircraft](https://singularaircraft.com/inicio). For privacy reasons towards the company, its software repository cannot be shared, and nothing from it is here. What can be shared is the knowledge: the research, the mathematical methods and their application in code. That is what these pages document, through equations, diagrams, pseudocode and results. The repository also includes a **clean-room implementation** (`code/`), written from the thesis equations: a generic aircraft, the dynamic models, the collocation problems, the warm start and its own optimisation pipeline with IPOPT, plus runnable examples. See [Code: public implementation](code/index.md).
 
-## Deeper results
+## Where to start
 
-| If you want… | Start at |
+| If you want to | Start at |
 |---|---|
+| Install the code, run it and optimise your own missions | [User guide](guide/index.md), a step-by-step path from installation to the formulation and the IPOPT options |
 | Each mission in detail | [Worked examples → UC-08](code/examples.md#uc-08-optimal-missions) |
 | The thesis numbers (real aircraft, optimiser) | [14. Warm-start benchmark](14-results-warmstart.md) → [15. Conclusions](15-conclusions.md) |
 | What was asked and why it is hard | [1. Problem and requirements](01-problem.md) |
 | How the solver is built | [5. OCP and NLP](05-ocp-theory.md) → [11. Warm start](11-warm-start.md) |
 | Why the published timings are conservative | [Derivatives: v1 and v2](derivatives.md) |
 | The generic aircraft's design charts and scenarios | [Worked examples](code/examples.md#uc-05-design-charts) |
-| Run it yourself | [Code: public implementation](code/index.md) |
-| The one-minute version | [README](https://github.com/pablourioste/uavtraj-opt#readme) |
+| The structure of the public code | [Code: public implementation](code/index.md) |
+| A short overview | [README](https://github.com/pablourioste/uavtraj-opt#readme) |
 
-## The idea in one picture
+## Method overview
 
 ```mermaid
 flowchart LR
@@ -64,4 +65,4 @@ A cheap geometric search provides a path; inverse dynamics turns it into a dynam
 
 The complete thesis is available as a PDF in the repository: `thesis/Optimal_3D_Trajectory_Planning_Thesis_Urioste.pdf`.
 
-[Next: Problem and requirements →](01-problem.md)
+[Next: User guide →](guide/index.md) · [Problem and requirements →](01-problem.md)

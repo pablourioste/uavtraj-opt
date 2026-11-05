@@ -1,6 +1,6 @@
 # Appendix: coordinate frames
 
-!!! abstract "TL;DR"
+!!! abstract "Summary"
     Missions arrive as geodetic coordinates (WGS-84); the optimiser works in a local NED frame; output goes back to geodetic for the autopilot.
 
 ## Frames

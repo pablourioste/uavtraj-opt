@@ -1,6 +1,6 @@
 # 4. Design decisions
 
-!!! abstract "TL;DR"
+!!! abstract "Summary"
     Hybrid A\* + inverse dynamics → UF collocation NLP → FC collocation NLP, solved with IPOPT. Each choice favours **robustness and sparsity** over peak speed.
 
 | Block | Chosen option | Main driver |

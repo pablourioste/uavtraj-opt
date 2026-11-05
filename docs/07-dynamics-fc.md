@@ -1,6 +1,6 @@
 # 7. Full-control formulation (FC): 6-DoF rigid body
 
-!!! abstract "TL;DR"
+!!! abstract "Summary"
     Newton–Euler equations in body axes with wind, aerodynamic angles and stability derivatives. 14 states, 4 physical controls $[T,\delta_e,\delta_a,\delta_r]$, $18N+1$ variables. Every control is an actuator command an autopilot can execute.
 
 ## The coupling dilemma

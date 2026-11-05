@@ -53,8 +53,8 @@ jobs:
         run: cmake --build build -j
       - name: Test (including the optimisation tests)
         run: ctest --test-dir build --output-on-failure
-      - name: Run the optimisation use cases
-        run: ./build/ofc data/cases/uc08_optimal_missions.json data/cases/uc09_warmstart_benchmark.json
+      - name: Run the optimisation use cases and the tutorial of the user guide
+        run: ./build/ofc data/cases/uc08_optimal_missions.json data/cases/uc09_warmstart_benchmark.json data/cases/tutorial_first_mission.json
   build-test-ipopt-windows:
     runs-on: windows-latest
     defaults:
@@ -72,4 +72,4 @@ jobs:
           if ($LASTEXITCODE) { exit $LASTEXITCODE }
           ctest --test-dir build --output-on-failure -C Release
           if ($LASTEXITCODE) { exit $LASTEXITCODE }
-          ./build/Release/ofc.exe data/cases/uc08_optimal_missions.json data/cases/uc09_warmstart_benchmark.json
+          ./build/Release/ofc.exe data/cases/uc08_optimal_missions.json data/cases/uc09_warmstart_benchmark.json data/cases/tutorial_first_mission.json

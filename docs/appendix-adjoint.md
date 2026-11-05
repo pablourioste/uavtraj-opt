@@ -1,6 +1,6 @@
 # Appendix: indirect (adjoint) method
 
-!!! abstract "TL;DR"
+!!! abstract "Summary"
     The indirect route derives optimality conditions analytically (Hamiltonian, costates) before discretising. It was used to understand the problem structure, not to build the solver.
 
 ## Outline

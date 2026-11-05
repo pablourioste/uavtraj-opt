@@ -1,4 +1,4 @@
-# ✈️ Optimal 3D Trajectory Planning for a Fixed-Wing UAV
+# Optimal 3D Trajectory Planning for a Fixed-Wing UAV
 
 ![License: CC BY 4.0](https://img.shields.io/badge/docs-CC%20BY%204.0-lightgrey)
 ![Solver](https://img.shields.io/badge/NLP-IPOPT-blue)
@@ -13,6 +13,8 @@
 
 > Bachelor's thesis (Universitat Politècnica de Catalunya – ESEIAAT) developed with **CIMNE** and in collaboration with **Singular Aircraft**.
 > Minimum-time / minimum-fuel 3D trajectory optimisation for a fixed-wing UAV, accelerated by a Hybrid A\* warm start.
+
+**Getting started.** The [User guide](docs/guide/index.md) leads step by step from installation to your own optimised mission. It documents the input files, the outputs, the optimisation process, the complete mathematical formulation and the use of IPOPT, with a worked tutorial and a catalogue of every example.
 
 ## Optimal missions around no-fly zones
 
@@ -32,7 +34,7 @@ The cover runs the whole method end to end on a generic UAV:
 
 - **Every stage converges and passes the independent verification**: dynamics, boundary conditions, envelope, zones and bounds.
 - **The whole optimal path stays clear of every zone.** The clearance is measured along the segments between nodes, not only at the nodes.
-- **Both models agree.** Point-mass and 6-DoF optima differ by under 0.5 % in flight time and 0.2 % in fuel, as they should for the same aircraft, provided the 6-DoF model flies coordinated (see [Worked examples → UC-08](docs/code/examples.md#uc-08--optimal-missions)).
+- **Both models agree.** Point-mass and 6-DoF optima differ by under 0.5 % in flight time and 0.2 % in fuel, as they should for the same aircraft, provided the 6-DoF model flies coordinated (see [Worked examples → UC-08](docs/code/examples.md#uc-08-optimal-missions)).
 - **Minimum fuel is physically sensible.** The aircraft slows from 25 m/s to about 21 m/s, its best lift-to-drag speed, and bleeds speed before arrival. It passes the waypoints on their tolerance circle, because going closer costs fuel.
 - **Each stage solves in about 0.5–1.5 s** on a laptop with 60 nodes (machine-dependent).
 
@@ -106,7 +108,7 @@ flowchart LR
 
 All timings come from the **v1 solver, which built its Jacobians by finite differences**. A later version uses exact derivatives (automatic differentiation); preliminary measurements show the point-mass stage about 3× faster. See [Derivatives: v1 and v2](docs/derivatives.md).
 
-**Honest limitations.** In these numbers the 6-DoF (FC) stage takes 4.5 – 12.9 s even with a warm start, so it does **not** meet the < 4 s real-time goal; only the point-mass (UF) layer does. For the point-mass stage the warm start is not always faster in the easy empty-airspace cases (it was faster in 3/5 min-fuel and 1/5 min-time cases); its real value is **robustness**.
+**Limitations.** In these numbers the 6-DoF (FC) stage takes 4.5 – 12.9 s even with a warm start, so it does **not** meet the < 4 s real-time goal; only the point-mass (UF) layer does. For the point-mass stage the warm start is not always faster in the easy empty-airspace cases (it was faster in 3/5 min-fuel and 1/5 min-time cases); its real value is **robustness**.
 
 <p align="center">
   <img src="docs/assets/figures/benchmark/speedup_min_fuel.png" width="48%" alt="FC speed-up, min-fuel">
@@ -123,7 +125,7 @@ All timings come from the **v1 solver, which built its Jacobians by finite diffe
 4. **Both pipelines reach nearly the same optimum** (3.3–4.5 % trajectory deviation, end-mass differences ≤ 0.1 kg), so the speed-up does not come from a worse solution. In scenario 8 the warm-started point-mass solve even finds a better optimum (101.5 s against 109.5 s in minimum time).
 5. **Smoothness regularisation makes controls flyable, at a price.** It suppresses control chatter in both models, but for the 6-DoF model it moves the optimum noticeably (SC-01 min-fuel: without regularisation the flight is 21 % longer and uses 14 % less energy), whereas the point-mass model changes by only a few percent.
 
-**What it does not show (yet)**
+**Limitations and open questions**
 
 - **Real-time target:** with the v1 solver only the point-mass layer (0.5–3.0 s) meets the < 4 s goal; the 6-DoF stage takes 4.5–12.9 s even with a warm start. End-to-end timings of the exact-derivative version are not part of this benchmark.
 - For easy empty-airspace cases the warm start does not always save time on the point-mass stage; its value there is robustness, not speed.
@@ -164,12 +166,12 @@ Walk-through with every output and figure: [Worked examples and design scenarios
 
 ## Run it with your own aircraft and mission
 
-From scratch, in four steps (full guide: [code/README.md](code/README.md#run-your-own-aircraft-and-mission)):
+From scratch, in four steps. The [User guide](docs/guide/index.md) covers each step in detail, and its [tutorial](docs/guide/05-tutorial.md) builds and optimises a mission from an empty file:
 
 1. **Build.** You need CMake ≥ 3.14 and a C++17 compiler; for the optimiser, also IPOPT (`sudo apt install coinor-libipopt-dev pkg-config` on Linux / WSL). Run `cd code && bash run.sh -t` to build and run the tests; `./build/ofc --info` says whether the optimiser is in.
 2. **Describe your aircraft.** Copy `code/data/aircraft/generic_uav.json` to `my_uav.json` and enter its mass, geometry, inertia, propulsion, envelope, actuator limits and aerodynamic derivatives. The loader rejects missing or inconsistent values. [UC-01](code/data/cases/uc01_aircraft_report.json) and [UC-05](code/data/cases/uc05_design_charts.json) print its performance and design charts.
 3. **Write the mission and the optimisation settings.** Copy [uc08_optimal_missions.json](code/data/cases/uc08_optimal_missions.json). For each mission give the start and end poses, altitude, climb and speed, no-fly zones (polygon `[north, east]` in metres, altitude band, margin) and waypoints (position, tolerance). The `pipeline` block sets the objective (minimum time … minimum fuel), the nodes, the stages, the smoothing weights and the IPOPT options.
-4. **Run.** `./build/ofc data/cases/my_mission.json`, then `python utils/plot_results.py`. You get the warm start, the UF and FC optima, a verification report per stage, CSV files and figures.
+4. **Run.** `./build/ofc data/cases/my_mission.json`, then `python utils/plot_results.py --optimal output/<your output folder>`. You get the warm start, the UF and FC optima, a verification report per stage, CSV files and figures.
 
 | Where is… | File |
 |---|---|
@@ -185,6 +187,7 @@ How to add new kinds of environment constraints: [Inserting environment constrai
 
 | Part | Pages |
 |---|---|
+| User guide | [Contents](docs/guide/index.md) · [Installation](docs/guide/01-installation.md) · [First run](docs/guide/02-first-run.md) · [Input files](docs/guide/03-inputs.md) · [Reading the results](docs/guide/04-results.md) · [Tutorial](docs/guide/05-tutorial.md) · [Optimisation process](docs/guide/06-optimisation-process.md) · [Formulation](docs/guide/07-formulation.md) · [Using IPOPT](docs/guide/08-ipopt.md) · [Examples](docs/guide/09-examples.md) · [Troubleshooting](docs/guide/10-troubleshooting.md) · [Library and extensions](docs/guide/11-extending.md) |
 | Project | [Problem](docs/01-problem.md) · [State of the art](docs/02-state-of-the-art.md) · [Methodology](docs/03-methodology.md) · [Design decisions](docs/04-design-decisions.md) |
 | Theory | [OCP → NLP](docs/05-ocp-theory.md) · [UF dynamics](docs/06-dynamics-uf.md) · [FC dynamics](docs/07-dynamics-fc.md) · [Transcription](docs/08-transcription.md) · [Constraints](docs/09-constraints.md) · [Cost function](docs/10-cost-function.md) · [Warm start](docs/11-warm-start.md) |
 | Results | [Validation](docs/12-results-validation.md) · [Regularisation](docs/13-results-penalties.md) · [Warm-start benchmark](docs/14-results-warmstart.md) · [Derivatives: v1 and v2](docs/derivatives.md) · [Conclusions](docs/15-conclusions.md) |
@@ -198,7 +201,8 @@ Browse locally with `pip install mkdocs-material && mkdocs serve`, or online at 
 ```
 ├── thesis/        full thesis (PDF)
 ├── docs/          chapter-by-chapter write-up (MkDocs) + figures in docs/assets/
-│   └── code/      documentation of the public code edition
+│   ├── guide/     user guide: installation, inputs, optimisation, formulation, IPOPT, examples
+│   └── code/      reference pages of the public code edition
 ├── code/          C++17 implementation: generic aircraft, models, planner, optimisation (IPOPT), examples
 └── results/       aggregated benchmark table (CSV) + column dictionary
 ```
@@ -214,5 +218,5 @@ The production solver was designed exclusively as a product for **Singular Aircr
 
 ## Author & citation
 
-**Pablo Urioste Alarcón** — [LinkedIn](https://www.linkedin.com/in/pablo-urioste-alarcón-239804235) — supervised by Dr. Àlex Ferrer Ferré (CIMNE / UPC).
+**Pablo Urioste Alarcón** ([LinkedIn](https://www.linkedin.com/in/pablo-urioste-alarcón-239804235)), supervised by Dr. Àlex Ferrer Ferré (CIMNE / UPC).
 Cite via [`CITATION.cff`](CITATION.cff). Documentation and figures: CC BY 4.0 ([LICENSE](LICENSE)); code in `code/`: MIT ([LICENSE-CODE](LICENSE-CODE)). Exclusions and trademarks: [NOTICE.md](NOTICE.md).

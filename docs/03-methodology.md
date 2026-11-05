@@ -1,6 +1,6 @@
 # 3. Methodology
 
-!!! abstract "TL;DR"
+!!! abstract "Summary"
     The problem is non-convex and the solver only converges locally, so the formulation was grown **one block at a time**, validating each stage before enabling the next.
 
 ## Why not solve it in one shot?

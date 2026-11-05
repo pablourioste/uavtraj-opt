@@ -1,6 +1,6 @@
 # 11. Warm-start pipeline
 
-!!! abstract "TL;DR"
+!!! abstract "Summary"
     Hybrid A\* gives a turn-radius-feasible 2D path; inverse dynamics lifts it to a full state–control guess; the UF solution is projected analytically to seed FC. Each stage cuts the work of the next one.
 
 ## Why the initial guess matters

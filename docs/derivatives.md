@@ -1,6 +1,6 @@
 # Derivatives: finite differences (v1) and exact derivatives (v2)
 
-!!! abstract "TL;DR"
+!!! abstract "Summary"
     Every number in the Results chapters comes from **v1** of the solver, which built the constraint Jacobian and the cost gradient by **forward finite differences**. A later version (**v2**) computes them exactly by automatic differentiation. Preliminary measurements reported in the thesis conclusions show the point-mass (UF) stage about **3× faster**. The public code reproduces the mechanism: on the generic aircraft, an analytic sparse Jacobian is 57–487× cheaper to build than a finite-difference one, and the gap grows with the number of nodes.
 
 ## Why it matters for an interior-point solver

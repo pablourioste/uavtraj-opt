@@ -1,6 +1,6 @@
 # 15. Conclusions
 
-!!! abstract "TL;DR"
+!!! abstract "Summary"
     A hierarchical warm start makes a 6-DoF trajectory optimiser **robust** (8/8 scenarios converge, against 5/8 from a cold start) and **faster** (1.2–4.4× for the 6-DoF stage) without degrading the optimum. Only the point-mass layer met the 4 s real-time target with the solver version benchmarked here (v1, finite-difference derivatives).
 
 ## What was delivered

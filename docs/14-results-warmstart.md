@@ -1,6 +1,6 @@
-﻿# 14. Warm-start benchmark
+# 14. Warm-start benchmark
 
-!!! abstract "TL;DR"
+!!! abstract "Summary"
     Cold start fails the point-mass solver in every NFZ/waypoint-only scenario. The full pipeline converges 8/8, and the 6-DoF stage runs 1.2–4.4× faster than a direct seed, with the largest gain in the hardest scenario. The 6-DoF stage still misses the 4 s real-time target.
 
 ## Setup

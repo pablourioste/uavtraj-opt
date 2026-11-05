@@ -3,6 +3,7 @@
 Usage (from code/, after running the use cases):
     python utils/plot_results.py                      # output/ -> output/figures/
     python utils/plot_results.py --out ../docs/assets/figures/code
+    python utils/plot_results.py --optimal output/tutorial   # one UC-08 output folder
 Requires numpy and matplotlib.
 """
 
@@ -418,11 +419,12 @@ def _optimal_top_view(a, d, mid, legend=True):
     return uf, fc
 
 
-def plot_optimal(out):
-    d = ROOT / "uc08"
-    ids = [p.stem.replace("_uf", "") for p in sorted(d.glob("M-*_uf.csv"))]
+def plot_optimal(out, d=ROOT / "uc08", pattern="M-*"):
+    # Any folder written by a UC-08 case; figures are named after the folder.
+    ids = [p.stem.replace("_uf", "") for p in sorted(d.glob(f"{pattern}_uf.csv"))
+           if (d / p.name.replace("_uf", "_fc")).exists() and (d / p.name.replace("_uf", "_ws")).exists()]
     if not ids:
-        print("skip UC-08: run data/cases/uc08_optimal_missions.json with an IPOPT build first")
+        print(f"skip UC-08 ({d}): run a UC-08 case with an IPOPT build first")
         return
 
     fig, ax = plt.subplots(1, len(ids), figsize=(4.0 * len(ids), 5.6))
@@ -440,11 +442,12 @@ def plot_optimal(out):
                                             label="no-fly zone (margin dotted)"),
                plt.Line2D([], [], color="#2ca02c", marker="D", ls="none", label="waypoint")]
     fig.legend(handles=handles, loc="lower center", ncol=6, fontsize=8, frameon=False)
-    fig.suptitle("Minimum-fuel trajectories optimised with IPOPT: warm start -> point mass -> 6-DoF", fontsize=10)
+    objective = "Minimum-fuel trajectories" if d.name == "uc08" else "Trajectories"
+    fig.suptitle(f"{objective} optimised with IPOPT: warm start -> point mass -> 6-DoF", fontsize=10)
     fig.tight_layout(rect=(0, 0.06, 1, 0.96))
-    fig.savefig(out / "uc08_cover.png", dpi=150)
+    fig.savefig(out / f"{d.name}_cover.png", dpi=150)
     plt.close(fig)
-    print("  ", out / "uc08_cover.png")
+    print("  ", out / f"{d.name}_cover.png")
 
     for mid in ids:
         fig = plt.figure(figsize=(12, 7.5))
@@ -464,7 +467,7 @@ def plot_optimal(out):
                 a.legend(fontsize=7)
             if i == len(rows) - 1:
                 a.set_xlabel("t [s]")
-        save(fig, out, f"uc08_{mid}.png")
+        save(fig, out, f"{d.name}_{mid}.png")
 
 
 # ── UC-09 ───────────────────────────────────────────────────────────────────
@@ -506,9 +509,14 @@ def plot_benchmark(out):
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("--out", default=str(ROOT / "figures"), help="directory for the PNG files")
+    parser.add_argument("--optimal", metavar="DIR",
+                        help="plot only the UC-08 results in DIR (your own case), whatever the mission ids")
     args = parser.parse_args()
     out = pathlib.Path(args.out)
     out.mkdir(parents=True, exist_ok=True)
+    if args.optimal:
+        plot_optimal(out, pathlib.Path(args.optimal), "*")
+        return 0
     for fn in (plot_simulation, plot_transcription, plot_design_charts, plot_scenarios, plot_missions, plot_optimal,
                plot_benchmark):
         fn(out)

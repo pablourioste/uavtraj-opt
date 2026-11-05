@@ -1,6 +1,6 @@
 # 5. From optimal control to nonlinear programming
 
-!!! abstract "TL;DR"
+!!! abstract "Summary"
     We want the control history that minimises a cost subject to the aircraft's equations of motion and operational limits. Discretising it turns an infinite-dimensional problem into a large but sparse NLP.
 
 ## Intuition

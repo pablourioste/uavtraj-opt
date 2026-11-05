@@ -1,6 +1,6 @@
 # 9. Constraint architecture
 
-!!! abstract "TL;DR"
+!!! abstract "Summary"
     Four layers: environment, dynamics (defects), boundaries, and performance envelope. All are normalised, and all but the defects act node-wise.
 
 ## 1. Domain and environment

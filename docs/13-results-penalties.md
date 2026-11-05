@@ -1,6 +1,6 @@
 # 13. Effect of the smoothness regularisation
 
-!!! abstract "TL;DR"
+!!! abstract "Summary"
     The penalties remove control chatter and make trajectories flyable, but they are **not free**: for the 6-DoF model they shift the optimum noticeably.
 
 ## Experiment
@@ -17,7 +17,7 @@ Each scenario was solved twice, with the production gates $\beta_c=\beta_s=1$ an
   <figcaption>Ground track of the same case. The two runs reach the same goal along visibly different paths.</figcaption>
 </figure>
 
-## Headline numbers (SC-01, minimum fuel)
+## Main results (SC-01, minimum fuel)
 
 | Model | Metric | With reg. | No reg. | Δ [%] |
 |---|---|---:|---:|---:|
@@ -30,11 +30,11 @@ Each scenario was solved twice, with the production gates $\beta_c=\beta_s=1$ an
 
 (Δ is as reported in the thesis table.)
 
-## Reading the results honestly
+## Interpretation
 
 - **UF** is barely affected: a few percent at most.
 - **FC** shows a much larger change in flight time and energy. The unregularised solver converges to a *different time horizon* with nearly the same path length (3355.8 m vs 3355.5 m). Getting a smooth optimum is harder with the full rigid-body model and often leaves it more suboptimal.
-- Total variation of the controls drops sharply on every axis, and collocation defects stay below tolerance in both cases. The unregularised runs are not "wrong" in the mathematical sense; they are just not flyable.
+- Total variation of the controls drops sharply on every axis, and collocation defects stay below tolerance in both cases. The unregularised runs are valid optima of their problem, but they are not flyable.
 - Most of the penalty mass sits on $w_{\Delta\delta_e}$ and $w_{\Delta T}$ in FC, and on $w_{\Delta C_L}$ in UF: exactly the channels that oscillate most without regularisation.
 
 [← Previous](12-results-validation.md) · [Next: Warm-start benchmark →](14-results-warmstart.md)

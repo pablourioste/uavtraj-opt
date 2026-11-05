@@ -1,6 +1,6 @@
 # 1. Problem and requirements
 
-!!! abstract "TL;DR"
+!!! abstract "Summary"
     Build a 3D trajectory solver for a Mission Management System (MMS) that plans accelerated climb/cruise/descent profiles, respects terrain and no-fly zones, and answers in **under 4 seconds**.
 
 ## Intuition

@@ -1,6 +1,6 @@
 # Appendix: reference aircraft MSN012 (Flyox I)
 
-!!! abstract "TL;DR"
+!!! abstract "Summary"
     MSN012 is the full-scale implementation of Singular Aircraft's **Flyox I** platform and the reference aircraft for every example, test and benchmark in this work. Data below are reproduced from the thesis annex.
 
 !!! note "Mass figures"

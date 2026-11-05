@@ -1,6 +1,6 @@
 # 8. Transcription: trapezoidal collocation and scaling
 
-!!! abstract "TL;DR"
+!!! abstract "Summary"
     Split the horizon into $N-1$ equal intervals, replace the ODE by one algebraic **defect** per interval, and scale every residual to order one.
 
 ## Defects

@@ -1,6 +1,6 @@
 # 6. Uncoupled formulation (UF): point-mass dynamics
 
-!!! abstract "TL;DR"
+!!! abstract "Summary"
     Treat the aircraft as a point mass in wind axes. The lift coefficient $C_L$ is a **direct control**, so no attitude dynamics are integrated. 9 states, 3 controls, $12N+1$ variables.
 
 ## Intuition

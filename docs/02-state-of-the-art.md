@@ -1,6 +1,6 @@
 # 2. State of the art
 
-!!! abstract "TL;DR"
+!!! abstract "Summary"
     Graph planners are fast but ignore dynamics; numerical optimal control respects dynamics but is slow and fragile without a good initial guess. The gap this work addresses is the **bridge** between the two.
 
 ## Three families of methods

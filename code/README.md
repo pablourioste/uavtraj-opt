@@ -1,4 +1,6 @@
-# code/ — trajectory optimisation for a generic fixed-wing UAV
+# code/: trajectory optimisation for a generic fixed-wing UAV
+
+> This page is a compact reference. For a step-by-step introduction (installation, input files, results, tutorial, optimisation process, formulation, IPOPT options, troubleshooting), read the [User guide](../docs/guide/index.md).
 
 A C++17 implementation, written from the thesis equations, of the whole method:
 
@@ -50,6 +52,7 @@ On Windows, from `code/`:
 | UC-07 Missions with no-fly zones and waypoints (planner + guidance) | `data/cases/uc07_nfz_missions.json` | |
 | **UC-08 Optimal missions** (warm start → UF → FC) | `data/cases/uc08_optimal_missions.json` | ✓ |
 | **UC-09 Warm-start benchmark** (cold vs warm, direct FC vs UF → FC) | `data/cases/uc09_warmstart_benchmark.json` | ✓ |
+| Tutorial: three missions of increasing difficulty ([guide, chapter 5](../docs/guide/05-tutorial.md)); not run by `run.sh` | `data/cases/tutorial_first_mission.json` | ✓ |
 
 ## Code structure
 
@@ -200,7 +203,7 @@ Copy `data/cases/uc08_optimal_missions.json` to, say, `data/cases/my_mission.jso
 
 | Key | Meaning | Default |
 |---|---|---|
-| `id`, `title` | labels; start `id` with `M-` to get figures | `SC` |
+| `id`, `title` | labels, used in the output file names | `SC` |
 | `h0_m`, `climb_m` | initial altitude; altitude change (final = `h0_m + climb_m`) | 300, 0 |
 | `V_mps` | commanded airspeed: initial speed and speed of the warm start | `V_cruise` |
 | `bank_deg`, `gamma_deg` | bank and flight-path angle used by the warm-start guidance | ¾ `phi_max`, ½ `gamma_max` |
@@ -228,13 +231,13 @@ Copy `data/cases/uc08_optimal_missions.json` to, say, `data/cases/my_mission.jso
 
 ```bash
 ./build/ofc data/cases/my_mission.json
-python utils/plot_results.py            # figures in output/figures/
+python utils/plot_results.py --optimal output/my_mission   # figures in output/figures/
 ```
 
 One row per mission:
 
 - `WS[ms]`: planner and guidance time.
-- `UF` / `FC`: IPOPT status (`solved` or `acceptable` = converged; a trailing `!` means converged but the verification failed), iterations, solve time, flight time, fuel [g], `pen%` share of the cost due to smoothing.
+- `UF` / `FC`: IPOPT status (`solved` or `acceptable` = converged; a trailing `!` marks a stage that did not succeed, either because IPOPT stopped early or because the verification failed), iterations, solve time, flight time, fuel [g], `pen%` share of the cost due to smoothing.
 - `clrUF` / `clrFC`: smallest distance beyond any zone's margin along the optimal path [m], must be ≥ 0.
 - `wpUF` / `wpFC`: largest waypoint miss [m], within the tolerance.
 - `simUF`: largest position error [m] of an RK4 simulation of each interval driven by the optimal UF controls (the discretisation error).
@@ -271,21 +274,22 @@ Zones and waypoints of the existing types need no code: list them in the case fi
 
 A **new kind** of constraint (a circle, a ceiling, terrain clearance, a speed limit in an area) needs:
 
-1. **Model** — a struct, a `...FromJson` parser and a smooth distance-like function in [environment.hpp](include/ofc/environment.hpp) / [environment.cpp](src/model/environment.cpp).
-2. **Mission data** — a vector in `MissionSpec` ([mission.hpp](include/ofc/mission.hpp)), parsed in `MissionSpec::fromJson`.
-3. **NLP rows** — add a member to `Mission` ([transcription.hpp](include/ofc/transcription.hpp)) and `FcMission` ([ocp_fc.hpp](include/ofc/ocp_fc.hpp)), then append one name to the path names and one value to `pathAt` in **both** models, in the same order (`TrapezoidalUF::pathConstraintNames`/`pathAt`, and the `FcProblem` constructor/`pathAt`). Use the `h ≤ 0` convention and normalise by a characteristic size. The path Jacobian picks the new row up automatically (finite differences per node); `nlp::verify` reports it under `environment` if its name starts with `nfz:` (extend `constraintKind` for other prefixes).
-4. **Planner** — if it restricts the horizontal path, extend the `isFree` test in `plan::planMission` ([planner.cpp](src/planning/planner.cpp)), or the warm start will cross it.
-5. **Pipeline** — pass the new data from `MissionSpec` to both problems in `pipeline::run`.
-6. **Tests** — sign convention, a point inside and outside, and a pipeline run that respects it ([tests/test_optimization.cpp](tests/test_optimization.cpp)).
+1. **Model.** A struct, a `...FromJson` parser and a smooth distance-like function in [environment.hpp](include/ofc/environment.hpp) / [environment.cpp](src/model/environment.cpp).
+2. **Mission data.** A vector in `MissionSpec` ([mission.hpp](include/ofc/mission.hpp)), parsed in `MissionSpec::fromJson`.
+3. **NLP rows.** Add a member to `Mission` ([transcription.hpp](include/ofc/transcription.hpp)) and `FcMission` ([ocp_fc.hpp](include/ofc/ocp_fc.hpp)), then append one name to the path names and one value to `pathAt` in **both** models, in the same order (`TrapezoidalUF::pathConstraintNames`/`pathAt`, and the `FcProblem` constructor/`pathAt`). Use the `h ≤ 0` convention and normalise by a characteristic size. The path Jacobian picks the new row up automatically (finite differences per node); `nlp::verify` reports it under `environment` if its name starts with `nfz:` (extend `constraintKind` for other prefixes).
+4. **Planner.** If it restricts the horizontal path, extend the `isFree` test in `plan::planMission` ([planner.cpp](src/planning/planner.cpp)), or the warm start will cross it.
+5. **Pipeline.** Pass the new data from `MissionSpec` to both problems in `pipeline::run`.
+6. **Tests.** Sign convention, a point inside and outside, and a pipeline run that respects it ([tests/test_optimization.cpp](tests/test_optimization.cpp)).
 
-Equality-type requirements (a final speed, a final altitude) are boundary rows: add them in the `UfProblem` / `FcProblem` constructors.
+Equality-type requirements (a final speed, a final altitude) are boundary rows: add them in the `UfProblem` / `FcProblem` constructors. [User guide, chapter 11](../docs/guide/11-extending.md) shows an example, and how to call the library and IPOPT from your own program.
 
 ## Results with the generic aircraft
 
-UC-08 (minimum fuel, 60 nodes): every stage converges in 85–193 iterations and 0.5–1.5 s on a laptop; both optima keep 9–12 m beyond every zone margin along the whole path; UF and FC agree to 0.3 % in fuel and flight time. UC-09 compares pipelines on the same problems. Full discussion with figures: [Worked examples → UC-08 and UC-09](../docs/code/examples.md#uc-08--optimal-missions).
+UC-08 (minimum fuel, 60 nodes): every stage converges in 85–193 iterations and 0.5–1.5 s on a laptop; both optima keep 9–12 m beyond every zone margin along the whole path; UF and FC agree to 0.3 % in fuel and flight time. UC-09 compares pipelines on the same problems. Full discussion with figures: [Worked examples → UC-08 and UC-09](../docs/code/examples.md#uc-08-optimal-missions).
 
 ## Documentation
 
+- [**User guide**](../docs/guide/index.md): installation, inputs, results, tutorial, optimisation process, formulation, IPOPT, examples, troubleshooting, extending
 - [Overview](../docs/code/index.md) · [Architecture](../docs/code/architecture.md) · [Formulation in code](../docs/code/formulation.md)
 - [Use cases](../docs/code/use-cases.md) · [**Worked examples**](../docs/code/examples.md) · [Aircraft file format](../docs/code/aircraft-format.md)
 
